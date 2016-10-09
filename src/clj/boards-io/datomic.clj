@@ -1,0 +1,74 @@
+(ns boards-io.datomic)
+
+(def schema-tx
+  '[
+    ;; board
+    {:db/id #db/id[:db.part/db]
+     :db/ident :board/name
+     :db/valueType :db.type/string
+     :db/cardinality :db.cardinality/one
+     :db/fulltext true
+     :db/doc "A board name"
+     :db.install/_attribute :db.part/db}
+    
+    {:db/id #db/id[:db.part/db]
+     :db/ident :board/description
+     :db/valueType :db.type/string
+     :db/cardinality :db.cardinality/one
+     :db/fulltext true
+     :db/doc "A board description"
+     :db.install/_attribute :db.part/db}
+
+    ;; column
+    {:db/id #db/id[:db.part/db]
+     :db/ident :column/name
+     :db/valueType :db.type/string
+     :db/cardinality :db.cardinality/one
+     :db/fulltext true
+     :db/doc "A column name"
+     :db.install/_attribute :db.part/db}
+    
+    {:db/id #db/id[:db.part/db]
+     :db/ident :column/board
+     :db/valueType :db.type/ref
+     :db/cardinality :db.cardinality/one
+     :db/fulltext true
+     :db/doc "A column board"
+     :db.install/_attribute :db.part/db}
+    
+    ;; task
+    {:db/id #db/id[:db.part/db]
+     :db/ident :task/name
+     :db/valueType :db.type/string
+     :db/cardinality :db.cardinality/one
+     :db/fulltext true
+     :db/doc "A task name"
+     :db.install/_attribute :db.part/db}
+    
+    {:db/id #db/id[:db.part/db]
+     :db/ident :task/column
+     :db/valueType :db.type/string
+     :db/cardinality :db.cardinality/one
+     :db/fulltext true
+     :db/doc "A task column"
+     :db.install/_attribute :db.part/db}])
+
+
+
+(def initial-data '[{:db/id #db/id[:db.part/user]
+                     :board/name "Work"
+                     :board/description "Work board"}
+                    
+                    {:db/id #db/id[:db.part/user -100001]
+                     :board/name "Personal"
+                     :board/description "Personal board"}
+
+
+                    {:db/id #db/id[:db.part/user]
+                     :column/board #db/id[:db.part/user -100001]
+                     :column/name "To-Do"}
+
+
+                    {:db/id #db/id[:db.part/user]
+                     :column/board #db/id[:db.part/user -100001]
+                     :column/name "Doing"}])
