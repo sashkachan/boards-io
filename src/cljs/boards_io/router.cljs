@@ -6,5 +6,5 @@
 
 (def router
   [""
-   {"/" :board/list
-    "/boards/" {[:board-id "/board"] :column/list}}])
+   {"/" :boards
+    "/boards/" {[:board-id "/board"] :columns}}])

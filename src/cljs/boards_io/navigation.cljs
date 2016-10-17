@@ -31,7 +31,6 @@
   (set! (.. t -retrieveToken)
         (fn [path-prefix location]
           (let [tkn (str (.-pathname location) (.-search location))]
-            (.log js/console tkn)
             tkn)))
   t)
 

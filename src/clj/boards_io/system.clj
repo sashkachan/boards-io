@@ -2,9 +2,9 @@
   (:require [com.stuartsierra.component :as c]
             [ring.adapter.jetty :refer [run-jetty]]
             [datomic.api :as d]
-            [boards-io.handler :as handler]
-            
-            [boards-io.datomic :as dat-data]))
+            [boards-io.handler :as handler]            
+            [boards-io.datomic :as dat-data]
+            [clojure.tools.namespace.repl :as nmr]))
 
 (def system-config
   {:uri "datomic:mem://boards-io"
@@ -37,7 +37,8 @@
                                  {:port port :join? false})]
         (assoc component :container container))))
   (stop [component]
-    (.stop (:container component))
+    (if-not (nil? (:container component))
+      (.stop (:container component)))
     (dissoc component :container)))
 
 
@@ -59,4 +60,4 @@
 
 (defn system-restart []
   (system-stop)
-  (system-start))
+  (nmr/refresh :after 'boards-io.system/system-start))

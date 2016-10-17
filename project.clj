@@ -20,7 +20,7 @@
                  [com.cognitect/transit-cljs  "0.8.239"]
                  [com.cognitect/transit-clj   "0.8.288"]
                  [ring "1.5.0"]
-                 [org.omcljs/om "1.0.0-alpha45"]
+                 [org.omcljs/om "1.0.0-alpha46"]
                  [figwheel-sidecar "0.5.4-6"]
                  [com.cemerick/piggieback "0.2.1"]]
 
@@ -35,7 +35,7 @@
                            :output-dir "resources/public/js"
                            :verbose true}}]}
   :plugins [[lein-figwheel "0.5.4-7"] [lein-cljsbuild "1.1.4"]]
-  :main boards-io.core
+  :main dev
   :source-paths ["src/clj" "src/cljs" "src/dev"]
   :clean-targets ^{:protect false} ["resources/public/js" "target"])
 
