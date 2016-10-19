@@ -14,16 +14,14 @@
 
 (defmethod readf :board/list
   [{:keys [conn query]} k _]
-  (println "readf :board/list " query)
   (let [resp (d/q '[:find [(pull ?eid sl) ...] :in $ sl :where [ ?eid :board/name] ] (d/db conn) query)]
     {:value resp})
   )
 
 (defmethod readf :column/list
   [{:keys [conn query]} k params]
-  (println ": " params query )
-  (println "readf :column/list " params query )
-  {:value (d/q '[:find [(pull ?cid sl) ...] :in $ sl :where [ ?cid :column/name]] (d/db conn) query)}
+  (let [{:keys [board-id]} params]
+    {:value (d/q '[:find [(pull ?cid sl) ...] :in $ sl ?bid :where [ ?cid :column/name] [ ?cid :column/board ?bid]] (d/db conn) query (read-string board-id))})
   )
 
 

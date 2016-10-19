@@ -32,7 +32,7 @@
 
 (defui Root
   static om/IQuery
-  (query [this ]
+  (query [this]
          `[:app/route
           ~(get-root-query)])
   
@@ -42,23 +42,28 @@
    (println "Root mounted"))
   
   (render [this]
-          (println "root data " (:route/data (om/props this)) )
+          (println "root data " (:route/data (om/props this)))
           (let [{:keys [app/route route/data]} (om/props this)]
             (if-not (nil? route)
               ((route->factory (first route)) data)))))
 
 (def reconciler
   (om/reconciler
-   {:state (atom {})
+   {:state (atom {:app/route [:boards]})
     :parser (om/parser {:read parser/read :mutate parser/mutate})
+    :merge (fn [r s n q]
+             (println "merge " s n)
+             {:keys [:route/data]
+              :next (assoc s :route/data n)})
     :send (transit/transit-post "/api")}))
 
 (defn change-route! [route]
-  (let [match (:handler (b/match-route router/router route))]
-    (println "change-route! pre-transact query: " (get-root-query))
-    (om/transact! reconciler `[(change/route! {:route [~match]})
-                               ~(get-root-query)
+  (let [{:keys [handler route-params]} (b/match-route router/router route)]
+    (println "change-route! pre-transact: " handler route-params)
+    (om/transact! reconciler `[(change/route! {:route [~handler ~route-params]})
+                               ~(om/force (get-root-query))
                                ])))
 
-(nav/wire-up (nav/new-history) #(change-route! %))
 (om/add-root! reconciler Root (js/document.getElementById "app"))
+(nav/wire-up (nav/new-history) #(change-route! %))
+

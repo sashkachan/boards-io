@@ -10,11 +10,13 @@
 (defn read-route [{:keys [state target query parser ast] :as env} k params]
   (let [st @state
         parsed (parser env query target)]
-#_    (println k "read-route parsed: " parsed)
-#_    (println "   read-route ast: " ast)
+    #_(println k "read-route parsed: " parsed)
+    (println "   read-route ast: " ast)
       (if (and (not (empty? parsed)) (not= nil target))
         (let [fps (first parsed)
-              expr-ast (parser/expr->ast (first parsed))]
+              ;; add cond-> and inject params
+              expr-ast (cond-> (parser/expr->ast (first parsed))
+                         (not= nil params) (assoc :params params))]
           {target expr-ast})
         {:value parsed})))
 
@@ -24,7 +26,8 @@
 
 (defmethod read :columns
   [env k params]
-  (read-route env k params))
+  (let [rp (-> env :route second)]
+    (read-route env k (merge params rp))))
 
 
 (defmethod read :default
@@ -35,22 +38,23 @@
       {:value (get st k)})))
 
 (defmethod read :route/data 
-      [{:keys [target parser state query ast] :as env} k _]
+      [{:keys [target parser state query ast] :as env} k params]
   (let [st @state
         route (-> (get st :app/route) first)
-        env' (assoc env :route route)
-        query' (or (get query route) query) ;; why is query already parsed?
-        ]
-#_    (println " route: " route)
-#_    (println " query: " query " remote " target)
-#_    (println "query': " query' " remote " target)
-#_    (println " state: " st)
-    (let [query-or-val (parser env' [{route query'}] target)]
-#_      (println ":route/data parser: " query-or-val)
-      (if (not= nil target)
+        route-params (-> (get st :app/route) second)
+        env' (assoc env :route [route route-params]) 
+        query' (get query route)]
+    (println "route/data params " route-params)
+;;    (println "   ast: " ast)
+;;    (println " route: " route)
+;;    (println " query: " query " remote " target)
+;;    (println "query': " query' " remote " target)
+;;    (println " state: " st)
+    (if (not= nil target)
+      (let [parsed (parser env' [{route query'}] target)]
         (cond-> {target nil}
-          (not (empty? query-or-val)) (assoc target (parser/expr->ast (first query-or-val))))
-        {:value (get query-or-val route)}))))
+          (not (empty? parsed)) (assoc target (parser/expr->ast (first parsed)))))
+      {:value (get st :route/data)})))
 
 (defmethod read :app/route
   [{:keys [state query]} k _]
@@ -59,6 +63,6 @@
 
 (defmethod mutate 'change/route!
   [{:keys [state]} _ {:keys [route]}]
-  {:keys [:route/data :columns :boards]
+  {:keys [:route/data]
    :action (fn []
              (swap! state assoc :app/route route))})

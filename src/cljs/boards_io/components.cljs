@@ -5,9 +5,20 @@
             [boards-io.router :as router]))
 
 (defui ColumnList
+  static om/Ident
+  (ident [_ item]
+         (println "ColList Ident " item)
+         [:column/by-id (-> item :db/id)])
+
+  static om/IQueryParams
+  (params [this]
+          {:board-id 0})
   static om/IQuery
   (query [this]
-         [{:column/list [ :column/name {:column/board [:board/name :board/description]}]}])  
+         '[({:column/list [ :column/name {:column/board [:db/id :board/name :board/description]}]} {:board-id ?board-id}) ]
+         ;;'[{:column/list [ :column/name {:column/board [:db/id :board/name :board/description]}]} ]
+ 
+         )
 
   Object
   (render [this]
@@ -24,7 +35,7 @@
 (defui BoardItem
   static om/Ident
   (ident [_ item]
-         [:board/by-name (:board/name item)])
+         [:board/by-id (:db/id item)])
   static om/IQuery
   (query [this]
          [:db/id :board/name :board/description])
