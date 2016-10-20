@@ -4,6 +4,8 @@
             [bidi.bidi :as b]
             [boards-io.router :as router]))
 
+
+
 (defui ColumnList
   static om/Ident
   (ident [_ item]
@@ -16,7 +18,6 @@
   static om/IQuery
   (query [this]
          '[({:column/list [ :column/name {:column/board [:db/id :board/name :board/description]}]} {:board-id ?board-id}) ]
-         ;;'[{:column/list [ :column/name {:column/board [:db/id :board/name :board/description]}]} ]
  
          )
 
@@ -31,7 +32,6 @@
                       (:column/list (om/props this)))
                      ))))
 
-
 (defui BoardItem
   static om/Ident
   (ident [_ item]
@@ -43,8 +43,10 @@
   (render [this]
           (println "BoardItem props: " (om/props this))
           (let [{:keys [db/id board/name board/description]} (om/props this)]
-            (dom/div nil (dom/a #js{:href (b/path-for router/router :columns :board-id id)} name)
-                     (dom/p nil description)))))
+            (dom/div 
+             #js {:className }
+             (dom/a #js{:href (b/path-for router/router :columns :board-id id)} name)
+             (dom/p nil description)))))
 
 (def board-item (om/factory BoardItem))
 

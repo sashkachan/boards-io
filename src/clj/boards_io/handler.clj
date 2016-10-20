@@ -5,22 +5,23 @@
                      wrap-transit-params]]   
             [ring.middleware.resource :refer [wrap-resource]]               
             [bidi.bidi :as bidi]   
-            [om.next.server :as om]   
+            [om.next.server :as om]
+            [boards-io.html :as html]
             [clojure.tools.namespace.repl :refer (refresh refresh-all)]   
-            [clojure.walk :as walk]   
+            [clojure.walk :as walk]
             [boards-io.parser :as parser]))
 
 (declare top-handler)
 
 ;;;;;;;;;;;;;;;; HANDLERS
 
-
 (defn index [req]
   (println "serving index")
   (if-let [resp (resource-response (str (:uri req)) {:root "public"})]
     resp
-    (resource-response "index.html" {:root "public"})))
-
+    {:status 200
+     :headers {"Content-Type" "text/html"}
+     :body (html/index)}))
 
 (defn generate-response [data & [status]]
   {:status  (or status 200)
@@ -28,7 +29,8 @@
    :body    data})
 
 (defn api [req route-params]
-  (let [data ((om/parser {:read parser/readf :mutate parser/mutatef})
+  (let [parser (om/parser {:read parser/readf :mutate parser/mutatef})
+        data (parser
               {:conn (:datomic-connection req) :route-params route-params} (:transit-params req))
         data' (walk/postwalk (fn [x]
                                (if (and (sequential? x) (= :result (first x)))

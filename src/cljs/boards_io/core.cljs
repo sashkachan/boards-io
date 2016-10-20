@@ -37,10 +37,6 @@
           ~(get-root-query)])
   
   Object
-  (componentDidMount
-   [this]
-   (println "Root mounted"))
-  
   (render [this]
           (println "root data " (:route/data (om/props this)))
           (let [{:keys [app/route route/data]} (om/props this)]
@@ -52,7 +48,6 @@
    {:state (atom {:app/route [:boards]})
     :parser (om/parser {:read parser/read :mutate parser/mutate})
     :merge (fn [r s n q]
-             (println "merge " s n)
              {:keys [:route/data]
               :next (assoc s :route/data n)})
     :send (transit/transit-post "/api")}))
@@ -66,4 +61,3 @@
 
 (om/add-root! reconciler Root (js/document.getElementById "app"))
 (nav/wire-up (nav/new-history) #(change-route! %))
-

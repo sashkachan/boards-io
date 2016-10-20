@@ -10,8 +10,7 @@
 (defn read-route [{:keys [state target query parser ast] :as env} k params]
   (let [st @state
         parsed (parser env query target)]
-    #_(println k "read-route parsed: " parsed)
-    (println "   read-route ast: " ast)
+#_      (println "   read-route ast: " ast)
       (if (and (not (empty? parsed)) (not= nil target))
         (let [fps (first parsed)
               ;; add cond-> and inject params

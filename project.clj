@@ -22,19 +22,10 @@
                  [ring "1.5.0"]
                  [org.omcljs/om "1.0.0-alpha46"]
                  [figwheel-sidecar "0.5.4-6"]
-                 [com.cemerick/piggieback "0.2.1"]]
+                 [com.cemerick/piggieback "0.2.1"]
+                 [hiccup "1.0.5"]]
 
-  :cljsbuild {:builds
-              [{:id "dev"
-                :figwheel true
-                :incremental false
-                :source-paths ["src/cljs"]
-                :compiler {:main "boards-io.core"
-                           :asset-path "/js"
-                           :output-to "resources/public/js/main.js"
-                           :output-dir "resources/public/js"
-                           :verbose true}}]}
-  :plugins [[lein-figwheel "0.5.4-7"] [lein-cljsbuild "1.1.4"]]
+  :plugins [[lein-cljsbuild "1.1.4"]]
   :main dev
   :source-paths ["src/clj" "src/cljs" "src/dev"]
   :clean-targets ^{:protect false} ["resources/public/js" "target"])
