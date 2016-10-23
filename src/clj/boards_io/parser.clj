@@ -21,6 +21,7 @@
 (defmethod readf :column/list
   [{:keys [conn query]} k params]
   (let [{:keys [board-id]} params]
+    (println ":column/list " query params board-id)
     {:value (d/q '[:find [(pull ?cid sl) ...] :in $ sl ?bid :where [ ?cid :column/name] [ ?cid :column/board ?bid]] (d/db conn) query (read-string board-id))})
   )
 

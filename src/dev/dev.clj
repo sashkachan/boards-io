@@ -21,4 +21,6 @@
   (system-stop)
   (nmr/refresh :after 'dev/system-start))
 
+(defn cljs-repl []
+  (figsys/cljs-repl (:figwheel-system system)))
 

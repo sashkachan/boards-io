@@ -18,7 +18,8 @@
                        inter (t/read (t/reader :json) response)
                        _ (println "inter " inter)
                        rewritten (rewrite inter)
-                       _ (println "rewritten " rewritten)]
+                       _ (println "rewritten " rewritten)
+                       ]
                    (cb rewritten))))
              "POST" (t/write (t/writer :json) query)
              #js {"Content-Type" "application/transit+json"}))))

@@ -1,10 +1,8 @@
 (ns boards-io.html
   (:require [hiccup.core :as hcp]))
 
-(defn index []
-  (hcp/html
-   [:html
-    [:head
+(def head
+  [:head
      [:meta {:charset "UTF-8"}]
      [:meta
       {:content "width=device-width, initial-scale=1", :name "viewport"}]
@@ -16,9 +14,27 @@
        "https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css",
        :rel "stylesheet"}]
      [:link
-      {:type "text/css", :rel "stylesheet", :href "/css/style.css"}]]
+      {:type "text/css", :rel "stylesheet", :href "/css/style.css"}]])
+
+(def nav
+  [:nav {:class "navbar navbar-default"}
+   [:div {:class "container-fluid"}
+    [:div {:class "navbar-header"}
+     [:a {:class "navbar-brand" :href "/"} "Boards.io"]]
+    [:div {:class "collapse navbar-collapse"}
+     [:ul {:class "nav navbar-nav"}
+      [:li#boards-list nil
+       [:a {:href "#"} "Boards"]]]]]])
+
+(def app
+  [:div#app.container-fluid])
+
+(defn index []
+  (hcp/html
+   [:html
+    head
     [:body
-     [:div#header ""]
-     [:div#app.container]
+     nav
+     app
      [:script {:type "text/javascript", :src "/js/main.js"}]]]))
 
