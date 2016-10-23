@@ -36,7 +36,7 @@
   (query [this]
          [:db/id :board/name :board/description])
   Object
-  (render [this]
+  (render [this]         
           (let [{:keys [db/id board/name board/description]} (om/props this)]
             (dom/div 
              nil
@@ -44,10 +44,13 @@
              (dom/p nil description)))))
 
 (defui NewBoardItemModal
-
   Object
   (render [this]
-          (dom/div nil (dom/div nil "new-board-item render"))))
+          (dom/div nil
+                   [(dom/div nil "new-board-item modal")
+                    (dom/a #js {:href "#"
+                                :onClick #(h/new-board-close
+                                           {:reconciler (om/get-reconciler this)})} "x")])))
 
 (def board-item (om/factory BoardItem {:keyfn :db/id}))
 (def new-board-item (om/factory NewBoardItemModal))
@@ -67,9 +70,8 @@
                                     (-> (map #(board-item %) (:board/list (om/props this)))
                                         vec)))
                        (dom/div nil (dom/a #js {:href "#"
-                                                  #_:onClick 
-                                                  } "New board...") )
-                      (let [{:keys [app/local-state] } (om/props this)]
+                                                  :onClick #(h/new-board {:reconciler (om/get-reconciler this)} )                                                  } "New board...") )
+                      (let [{:keys [app/local-state]} (om/props this)]
                         (if (= 1 (:board/new-board-modal local-state))
                           (new-board-item)))
                       ])))

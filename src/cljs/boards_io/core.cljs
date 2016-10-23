@@ -33,13 +33,6 @@
           :matcher (partial b/match-route router/router)
           :query-root (c/get-root-query)})
 
-(defn change-route! [route]
-  (let [{:keys [handler route-params]} (b/match-route router/router route)]
-    (println "change-route! pre-transact: " handler route-params)
-    (om/transact! reconciler `[(change/route! {:route [~handler ~route-params]})
-                               ~(om/force (get (c/get-root-query) handler))
-                               ])))
-
 (nav/wire-up (nav/new-history) #(h/change-route! env %))
 (om/add-root! reconciler c/Root (js/document.getElementById "app"))
 
