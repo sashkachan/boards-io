@@ -25,10 +25,8 @@
 
 (defmethod read :default
   [{:keys [target state query parser db-path] :as env} k _]
-  (println ":boards subquery: " (parser env query))
+  (println k " subquery: " (parser env query))
   (let [st @state]
-;;    (println "dbpath " (conj db-path k) (get-in st (conj db-path k)))
-    (println ":boards st " st)
     (if (not= nil target)
       (get-query-root env)
       {:value (merge (get-in st db-path) (parser env query))})))
