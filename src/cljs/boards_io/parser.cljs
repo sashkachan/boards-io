@@ -11,7 +11,7 @@
   {target (assoc ast :query-root true)})
 
 (defmethod read :column/list [{:keys [ast target route] :as env} _ params]
-  (println (second route))
+  (println "reading :column/list " target )
   {target (-> ast
               (assoc :query-root true)
               (assoc :params (second route)))})
@@ -20,34 +20,39 @@
   [{:keys [ast target parser] :as env}]
   {target (update-in ast [:query]
                      #(let [q (if (vector? %) % [%])
-                            res (parser env q target)
-                            _ (println "query: " q)
-                            _ (println "res:   " res)]
-                        res))})
+                            res (parser env q target)] res))})
 
-
-(defmethod read :boards
-  [{:keys [target state query parser] :as env} k _]
-  (if (not= nil target)
-    (get-query-root env)
-    {:value (merge (get @state :boards) (parser env query))}))
 
 (defmethod read :default
-  [{:keys [target state query parser] :as env} k _]
+  [{:keys [target state query parser db-path] :as env} k _]
+  (println ":boards subquery: " (parser env query))
+  (let [st @state]
+;;    (println "dbpath " (conj db-path k) (get-in st (conj db-path k)))
+    (println ":boards st " st)
+    (if (not= nil target)
+      (get-query-root env)
+      {:value (merge (get-in st db-path) (parser env query))})))
+
+#_(defmethod read :default
+  [{:keys [target state query parser db-path] :as env} k _]
+  (println "default with " k)
   (if (not= nil target)
     (get-query-root env)
-    {:value (get @state k)}))
+    {:value (get-in @state db-path )}))
 
 (defmethod read :route/data 
   [{:keys [target parser state query ast] :as env} k params]
   (let [st @state
         route (-> (get st :app/route) first)
         route-params (-> (get st :app/route) second)
-        env' (assoc env :route [route route-params])
+        env' (-> env
+                 (assoc :route [route route-params])
+                 (assoc :db-path [:route/data route])) 
         query' (get query route)]
     (if (nil? route)
       {:value nil}
       (let [parsed (parser env' [{route query'}] target)]
+        (println "parsed: " parsed)
         (cond-> {}
           (not= nil target) (assoc target (parser/expr->ast (first parsed)))
           (= nil target ) (assoc :value parsed))))))
@@ -55,7 +60,6 @@
 (defmethod read :app/local-state
   [{:keys [state env query]} key _]
   (let [st @state]
-    (println "reading :app/local-state")
     {:value (get st :app/local-state)}))
 
 (defmethod read :app/route
@@ -65,8 +69,9 @@
 
 (defmethod mutate 'change/route!
   [{:keys [state]} _ {:keys [route]}]
-  {:keys [:boards :columns]
+  {:keys [:route/data]
    :action (fn []
+             (swap! state assoc :route/data nil)
              (swap! state assoc :app/route route))})
 
 (defmethod mutate 'change/toggle-modal!
@@ -76,5 +81,4 @@
              (let [loc-state (get @state :app/local-state)
                    new-state (if loc-state loc-state {})
                    new-modal-state (assoc new-state modal modal-state)]
-               (swap! state assoc :app/local-state new-modal-state))
-             )})
+               (swap! state assoc :app/local-state new-modal-state)))})

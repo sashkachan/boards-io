@@ -15,8 +15,8 @@
 (defmethod readf :board/list
   [{:keys [conn query]} k _]
   (let [resp (d/q '[:find [(pull ?eid sl) ...] :in $ sl :where [ ?eid :board/name] ] (d/db conn) query)]
-    {:value resp})
-  )
+    
+    {:value resp}))
 
 (defmethod readf :column/list
   [{:keys [conn query]} k params]

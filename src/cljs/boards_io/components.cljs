@@ -59,8 +59,8 @@
 (defui BoardList
   static om/IQuery
   (query [this]
-         `[{:app/local-state [:board/new-board-modal]} {:board/list ~(om/get-query BoardItem)}])
-  
+         `[{:app/local-state [*]} {:board/list ~(om/get-query BoardItem)}])
+
   Object
   (render [this]
           (println "BoardList props: " (om/props this))
@@ -85,22 +85,6 @@
           (map om/factory (vals route->component))))
 
 (defn get-root-query []
-  
   {:route/data (zipmap (keys route->component)
                        (map om/get-query (vals route->component)))})
-
-(defui Root
-  static om/IQuery
-  (query [this]
-         `[:app/route
-          ~(get-root-query)])
-  
-  Object
-  (render [this]
-          (println "root data " (om/props this))
-          (let [{:keys [app/route route/data]} (om/props this)
-                pr (first route)]
-            (if (not= nil pr)
-              ((route->factory pr) (get data pr)))
-            )))
 
