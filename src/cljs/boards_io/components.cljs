@@ -2,6 +2,7 @@
   (:require [bidi.bidi :as b]
             [boards-io.handlers :as h]
             [boards-io.router :as router]
+            [boards-io.modals :as m]
             [om.dom :as dom]
             [om.next :as om :refer-macros [defui ui]]))
 
@@ -43,17 +44,8 @@
              (dom/a #js{:href (b/path-for router/router :columns :board-id id)} name)
              (dom/p nil description)))))
 
-(defui NewBoardItemModal
-  Object
-  (render [this]
-          (dom/div nil
-                   [(dom/div nil "new-board-item modal")
-                    (dom/a #js {:href "#"
-                                :onClick #(h/new-board-close
-                                           {:reconciler (om/get-reconciler this)})} "x")])))
-
 (def board-item (om/factory BoardItem {:keyfn :db/id}))
-(def new-board-item (om/factory NewBoardItemModal))
+(def new-board-item (om/factory m/NewBoardItemModal))
 
 
 (defui BoardList

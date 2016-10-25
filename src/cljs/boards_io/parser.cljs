@@ -25,18 +25,13 @@
 
 (defmethod read :default
   [{:keys [target state query parser db-path] :as env} k _]
-  (println k " subquery: " (parser env query))
-  (let [st @state]
+  (println k " subquery: " (parser env query target))
+  (let [st @state
+        path (conj db-path k)]
     (if (not= nil target)
       (get-query-root env)
-      {:value (merge (get-in st db-path) (parser env query))})))
+      {:value (merge (get-in st path) (parser env query))})))
 
-#_(defmethod read :default
-  [{:keys [target state query parser db-path] :as env} k _]
-  (println "default with " k)
-  (if (not= nil target)
-    (get-query-root env)
-    {:value (get-in @state db-path )}))
 
 (defmethod read :route/data 
   [{:keys [target parser state query ast] :as env} k params]
@@ -45,12 +40,12 @@
         route-params (-> (get st :app/route) second)
         env' (-> env
                  (assoc :route [route route-params])
-                 (assoc :db-path [:route/data route])) 
+                 (assoc :db-path [:route/data])) 
         query' (get query route)]
     (if (nil? route)
       {:value nil}
       (let [parsed (parser env' [{route query'}] target)]
-        (println "parsed: " parsed)
+        #_(println "parsed: " parsed)
         (cond-> {}
           (not= nil target) (assoc target (parser/expr->ast (first parsed)))
           (= nil target ) (assoc :value parsed))))))

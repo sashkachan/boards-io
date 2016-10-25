@@ -47,8 +47,8 @@
    [this]
    (nav/wire-up (nav/new-history) #(h/change-route! (assoc env :this this) %)))
 
-  (componentDidUpdate [this prev-props prev-state]
-                      (println "Root component updated " prev-props))
+  (componentDidUpdate [this _ _]
+                      (println "Root component updated " (om/props this)))
   
   (render [this]
           (println "root data " (om/props this))
