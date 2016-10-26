@@ -51,7 +51,7 @@
 (defui BoardList
   static om/IQuery
   (query [this]
-         `[{:app/local-state [*]} {:board/list ~(om/get-query BoardItem)}])
+         `[:app/local-state {:board/list ~(om/get-query BoardItem)}])
 
   Object
   (render [this]

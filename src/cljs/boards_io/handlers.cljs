@@ -1,5 +1,7 @@
 (ns boards-io.handlers
-  (:require [om.next :as om]))
+  (:require [om.next :as om]
+            [goog.dom :as gdom]
+            [goog.dom.forms :as forms]))
 
 (defn change-route! [{:keys [reconciler matcher query-root this]} route]
   (let [{:keys [handler route-params]} (matcher route)
@@ -13,5 +15,11 @@
 (defn new-board [{:keys [reconciler]} ]
   (om/transact! reconciler '[(change/toggle-modal! {:modal :board/new-board-modal :modal-state 1})]))
 
-(defn new-board-close [{:keys [reconciler]}]
-  (om/transact! reconciler '[(change/toggle-modal! {:modal :board/new-board-modal :modal-state 0})]))
+(defn modal-close [{:keys [reconciler]} ref]
+  (om/transact! reconciler `[(change/toggle-modal! {:modal ~ref :modal-state 0})]))
+
+(defn new-board-save [{:keys [reconciler]}]
+  (let [form (gdom/getElement "new-board-form")
+        board-title (forms/getValueByName form "board-title")
+        board-description (forms/getValueByName form "board-description")]
+#_    (om/transact! reconciler )))

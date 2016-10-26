@@ -11,7 +11,6 @@
   {target (assoc ast :query-root true)})
 
 (defmethod read :column/list [{:keys [ast target route] :as env} _ params]
-  (println "reading :column/list " target )
   {target (-> ast
               (assoc :query-root true)
               (assoc :params (second route)))})
@@ -75,3 +74,7 @@
                    new-state (if loc-state loc-state {})
                    new-modal-state (assoc new-state modal modal-state)]
                (swap! state assoc :app/local-state new-modal-state)))})
+
+(defmethod mutate 'save/new-board!
+  [{:keys [state]} _ {:keys [title description]}]
+#_  {:remote true})

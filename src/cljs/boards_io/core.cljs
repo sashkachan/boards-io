@@ -19,9 +19,11 @@
 
 (enable-console-print!)
 
+(defonce state (atom {:app/route [] :app/local-state {}}))
+
 (def reconciler
   (om/reconciler
-   {:state (atom {:app/route [] :app/local-state {}})
+   {:state state
     :parser (om/parser {:read parser/read :mutate parser/mutate})
     :merge (fn [r s n q]
              #_(println "merger " s n q)
