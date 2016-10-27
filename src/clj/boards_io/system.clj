@@ -4,14 +4,11 @@
             [datomic.api :as d]
             [boards-io.handler :as handler]            
             [boards-io.datomic :as dat-data]
-            [clojure.tools.namespace.repl :as nmr]))
+;            [clojure.tools.namespace.repl :as nmr]
+            [system.core :refer [defsystem]]))
 
 (def system-config
-  {:uri "datomic:mem://boards-io"
-   :schema-tx dat-data/schema-tx
-   :init-data dat-data/initial-data
-   :port 9091
- })
+)
 
 (defrecord Database [uri schema-tx init-data]
   c/Lifecycle
@@ -42,20 +39,16 @@
     (dissoc component :container)))
 
 
-(defn app-system [config-opts]
+#_(defn app-system [config-opts]
   (let [{:keys [uri schema-tx init-data port]} config-opts]
     (c/system-map
      :db (map->Database {:uri uri :schema-tx schema-tx :init-data init-data})
      :server (c/using (map->WebServer {:port port}) {:connection :db}))))
 
-(def system (app-system system-config))
+(defsystem dev-system
+  [:db (map->Database
+        {:uri "datomic:mem://boards-io"
+         :schema-tx dat-data/schema-tx
+         :init-data dat-data/initial-data })
+   :server (c/using (map->WebServer {:port 9091}) {:connection :db})])
 
-(defn system-start []
-  (alter-var-root #'system c/start))
-
-(defn system-stop []
-  (alter-var-root #'system c/stop))
-
-(defn system-restart []
-  (system-stop)
-  (nmr/refresh :after 'boards-io.system/system-start))

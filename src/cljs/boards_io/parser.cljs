@@ -7,6 +7,8 @@
 (defmulti read om/dispatch)
 (defmulti mutate om/dispatch)
 
+
+
 (defmethod read :board/list [{:keys [ast target] :as env} _ _]
   {target (assoc ast :query-root true)})
 
@@ -78,6 +80,7 @@
 (defmethod mutate 'save/new-board!
   [{:keys [state] :as env} _ {:keys [title description id]}]
   {:remote true
+   
    :action (fn []
              (let [st @state
                    boards (get-in st [:route/data :boards :board/list])

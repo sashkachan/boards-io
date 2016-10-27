@@ -33,5 +33,5 @@
     [:body
      nav
      app
-     [:script {:type "text/javascript", :src "/js/main.js"}]]]))
+     [:script {:type "text/javascript", :src "/js/app.js"}]]]))
 

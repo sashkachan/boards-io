@@ -34,7 +34,7 @@
 
 (defmethod mutatef 'save/new-board!
   [{:keys [conn] :as env} k {:keys [title description id] :as params}]
-  (println "save/new-board! " env params)
+  (println "// save/new-board! " env params)
   {:action (fn []
              @(d/transact conn `[{:db/id #db/id[:db.part/user ~(read-string id)]
                                   :board/name ~title

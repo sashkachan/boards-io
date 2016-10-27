@@ -40,6 +40,7 @@
 
 (defui Root
   static om/IQuery
+  
   (query [this]
          `[:app/route
           ~(c/get-root-query)])
@@ -50,7 +51,7 @@
    (nav/wire-up (nav/new-history) #(h/change-route! (assoc env :this this) %)))
 
   (componentDidUpdate [this _ _]
-                      (println "Root component updated " (om/props this)))
+                      (println "Woohooo Root component updated " (om/props this)))
   
   (render [this]
           (println "root data " (om/props this))

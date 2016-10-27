@@ -23,6 +23,12 @@
   (system-stop)
   (nmr/refresh :after 'dev/system-start))
 
+(defn system-restart-prod []
+  (s/system-stop)
+  (nmr/refresh :after 's/system-start))
+
 (defn cljs-repl []
   (figsys/cljs-repl (:figwheel-system system)))
 
+(defn -main []
+  (system-start))

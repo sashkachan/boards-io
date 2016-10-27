@@ -23,8 +23,10 @@
                  [figwheel-sidecar "0.5.4-6"]
                  [com.cemerick/piggieback "0.2.1"]
                  [hiccup "1.0.5"]]
+
   :plugins [[lein-cljsbuild "1.1.4"]]
-  :main boards-io.core
+  :main dev
   :source-paths ["src/clj" "src/cljs" "src/dev"]
+  :profiles {:prod {:main boards-io.core}}
   :clean-targets ^{:protect false} ["resources/public/js" "target"])
 
