@@ -22,6 +22,7 @@
                  [org.omcljs/om "1.0.0-alpha46"]
                  [figwheel-sidecar "0.5.4-6"]
                  [com.cemerick/piggieback "0.2.1"]
+                 [org.danielsz/system         "0.3.2-SNAPSHOT"]
                  [hiccup "1.0.5"]]
   :plugins [[lein-cljsbuild "1.1.4"]]
   :main boards-io.core

@@ -2,7 +2,7 @@
   (:require [com.stuartsierra.component :as c]
             [ring.adapter.jetty :refer [run-jetty]]
             [datomic.api :as d]
-            [boards-io.handler :as handler]            
+            [boards-io.handler :as handler]
             [boards-io.datomic :as dat-data]
             [clojure.tools.namespace.repl :as nmr]))
 
@@ -11,17 +11,17 @@
    :schema-tx dat-data/schema-tx
    :init-data dat-data/initial-data
    :port 9091
- })
+   })
 
 (defrecord Database [uri schema-tx init-data]
   c/Lifecycle
-  (start [component]    
+  (start [component]
     (let [_ (d/create-database uri)
-          conn (d/connect uri)]      
+          conn (d/connect uri)]
       @(d/transact conn schema-tx)
       @(d/transact conn init-data)
       (assoc component :connection conn)))
-  
+
   (stop [component]
     (when (:connection component)
       (d/delete-database uri)
@@ -45,8 +45,8 @@
 (defn app-system [config-opts]
   (let [{:keys [uri schema-tx init-data port]} config-opts]
     (c/system-map
-     :db (map->Database {:uri uri :schema-tx schema-tx :init-data init-data})
-     :server (c/using (map->WebServer {:port port}) {:connection :db}))))
+      :db (map->Database {:uri uri :schema-tx schema-tx :init-data init-data})
+      :server (c/using (map->WebServer {:port port}) {:connection :db}))))
 
 (def system (app-system system-config))
 

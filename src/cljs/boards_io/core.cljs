@@ -17,6 +17,7 @@
             )
   (:import goog.History ))
 
+
 (enable-console-print!)
 
 (defonce state (atom {:app/route [] :app/local-state {}}))

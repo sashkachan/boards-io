@@ -3,6 +3,7 @@
             [om.next :as om :refer-macros [defui ui]]
             [boards-io.handlers :as h]))
 
+
 (def new-board-form
   (dom/form
    #js {:id "new-board-form"}

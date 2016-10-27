@@ -76,13 +76,13 @@
                (swap! state assoc :app/local-state new-modal-state)))})
 
 (defmethod mutate 'save/new-board!
-  [{:keys [state] :as env} _ {:keys [title description id]}]
+  [{:keys [state] :as env} _ {:keys [title description]}]
   {:remote true
-   :action (fn []
+   #_:action #_ (fn []
              (let [st @state
                    boards (get-in st [:route/data :boards :board/list])
-                   new-boards (conj boards {:db/id id
+                   _ (println "new-state " st)
+                   new-boards (conj boards {:db/id 123
                                             :board/name title
                                             :board/description description})]
-               (swap! state assoc-in [:route/data :boards :board/list] new-boards )))}
-  )
+               (swap! state assoc-in [:route/data :boards :board/list] new-boards )))} )

@@ -22,4 +22,4 @@
   (let [form (gdom/getElement "new-board-form")
         title (forms/getValueByName form "board-title")
         description (forms/getValueByName form "board-description")]
-    (om/transact! reconciler `[(save/new-board! {:id (om/tempid -100) :title ~title :description ~description})])))
+    (om/transact! reconciler `[(save/new-board! {:title ~title :description ~description})])))
