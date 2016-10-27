@@ -8,8 +8,7 @@
   
   :dependencies [[org.clojure/clojure "1.8.0"]
                  [org.clojure/clojurescript "1.9.89"]
-                 [org.clojure/core.async "0.2.385"
-                  :exclusions [org.clojure/tools.reader]]
+                 [org.clojure/core.async "0.2.385"]
                  [cljsjs/react "15.2.1-1"]
                  [cljsjs/react-dom "15.2.1-1"]
                  [org.clojure/tools.namespace "0.2.11"]
@@ -24,9 +23,8 @@
                  [figwheel-sidecar "0.5.4-6"]
                  [com.cemerick/piggieback "0.2.1"]
                  [hiccup "1.0.5"]]
-
   :plugins [[lein-cljsbuild "1.1.4"]]
-  :main dev
+  :main boards-io.core
   :source-paths ["src/clj" "src/cljs" "src/dev"]
   :clean-targets ^{:protect false} ["resources/public/js" "target"])
 

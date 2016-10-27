@@ -20,6 +20,6 @@
 
 (defn new-board-save [{:keys [reconciler]}]
   (let [form (gdom/getElement "new-board-form")
-        board-title (forms/getValueByName form "board-title")
-        board-description (forms/getValueByName form "board-description")]
-#_    (om/transact! reconciler )))
+        title (forms/getValueByName form "board-title")
+        description (forms/getValueByName form "board-description")]
+    (om/transact! reconciler `[(save/new-board! {:id (om/tempid -100) :title ~title :description ~description})])))

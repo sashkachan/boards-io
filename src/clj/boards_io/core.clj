@@ -6,7 +6,8 @@
    [hiccup.core :as hc]))
 ;;   [compassus.core :as cc]
 
-
+(defn -main []
+  (s/system-start))
 
 
 ;; system 

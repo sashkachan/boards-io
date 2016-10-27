@@ -48,8 +48,6 @@
      :db (map->Database {:uri uri :schema-tx schema-tx :init-data init-data})
      :server (c/using (map->WebServer {:port port}) {:connection :db}))))
 
-
-
 (def system (app-system system-config))
 
 (defn system-start []
