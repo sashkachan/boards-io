@@ -18,8 +18,9 @@
 (defn modal-close [{:keys [reconciler]} ref]
   (om/transact! reconciler `[(change/toggle-modal! {:modal ~ref :modal-state 0})]))
 
-(defn new-board-save [{:keys [reconciler]}]
+(defn new-board-save [{:keys [reconciler root-query]}]
+  (println "Root-query " root-query)
   (let [form (gdom/getElement "new-board-form")
         title (forms/getValueByName form "board-title")
         description (forms/getValueByName form "board-description")]
-    (om/transact! reconciler `[(save/new-board! {:title ~title :description ~description})])))
+    (om/transact! reconciler `[(save/new-board! {:title ~title :description ~description}) ~root-query])))

@@ -23,7 +23,8 @@
   Object
   (render
    [this]
-   (let [h-env {:reconciler (om/get-reconciler this)}
+   (println (om/props this))
+   (let [h-env {:reconciler (om/get-reconciler this) :root-query (:root-query (om/props this))}
          close (fn [b cl ar] (dom/button
                              #js {:type "button"
                                   :className cl

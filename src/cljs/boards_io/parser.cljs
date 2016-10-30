@@ -76,7 +76,8 @@
                (swap! state assoc :app/local-state new-modal-state)))})
 
 (defmethod mutate 'save/new-board!
-  [{:keys [state] :as env} _ {:keys [title description]}]
+  [{:keys [state ref] :as env} _ {:keys [title description]}]
+  #_(println "save/new-board! cljs ref " ref)
   {:remote true
    #_:action #_ (fn []
              (let [st @state

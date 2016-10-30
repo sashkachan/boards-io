@@ -35,8 +35,10 @@
 (defmethod mutatef 'save/new-board!
   [{:keys [conn] :as env} k {:keys [title description] :as params}]
   (println " -- save/new-board! " env params)
-  {:action (fn []
-             @(d/transact conn `[{:db/id #db/id[:db.part/user]
-                                  :board/name ~title
-                                  :board/description ~description}]))
-   :value {:keys `[{:board/list [:db/id :board/name :board/description]}]}})
+  
+  {:value {:keys '[:board/list]}
+   :action (fn []
+              @(d/transact conn `[{:db/id #db/id[:db.part/user]
+                                   :board/name ~title
+                                   :board/description ~description}]))
+   })

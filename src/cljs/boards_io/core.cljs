@@ -27,7 +27,7 @@
    {:state state
     :parser (om/parser {:read parser/read :mutate parser/mutate})
     :merge (fn [r s n q]
-             #_(println "merger " s n q)
+             (println "merger " s n q)
              {:keys [:route/data]
               :next (let [cur-rd (get s :route/data)
                           new-rd (merge cur-rd n)]

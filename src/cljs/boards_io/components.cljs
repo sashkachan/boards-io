@@ -6,6 +6,8 @@
             [om.dom :as dom]
             [om.next :as om :refer-macros [defui ui]]))
 
+(declare get-root-query)
+
 (defui ColumnList
   static om/Ident
   (ident [_ item]
@@ -65,7 +67,7 @@
                                                   :onClick #(h/new-board {:reconciler (om/get-reconciler this)} )                                                  } "New board...") )
                       (let [{:keys [app/local-state]} (om/props this)]
                         (if (= 1 (:board/new-board-modal local-state))
-                          (new-board-item)))
+                          (new-board-item {:root-query (get-root-query)})))
                       ])))
 
 (def route->component
