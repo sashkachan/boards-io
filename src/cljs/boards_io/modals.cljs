@@ -35,14 +35,19 @@
                                :className "btn btn-primary"
                                :onClick #(h/new-board-save
                                           h-env)} "Save")]
-     (dom/div
-      #js {:className "modal-dialog" :role "document" :id "new-board-save"}
-      (dom/div #js {:className "modal-content"}
-               [(dom/div #js {:className "modal-header"}
-                         [(close "×" "close" "Close")
-                          (dom/h4 #js {:className "modal-title"} "Create new board:")])
-                (dom/div #js {:className "modal-body"}
-                         new-board-form)
-                (dom/div #js {:className "modal-footer"}
-                         [(close "Close" "btn btn-default" "")
-                          save])])))))
+     (dom/div #js {:id "modal-wrap"}
+              (dom/div #js {:className "modal fade in"
+                            :style #js {:display "visible"} }
+                       (dom/div
+                        #js {:className "modal-dialog" :role "document" :id "new-board-save"}
+                        (dom/div #js {:className "modal-content"}
+                                 [(dom/div #js {:className "modal-header"}
+                                           [(close "×" "close" "Close")
+                                            (dom/h4 #js {:className "modal-title"} "Create new board:")])
+                                  (dom/div #js {:className "modal-body"}
+                                           new-board-form)
+                                  (dom/div #js {:className "modal-footer"}
+                                           [(close "Close" "btn btn-default" "")
+                                            save])]))))
+
+)))
