@@ -59,14 +59,14 @@
   (let [st @state]
      {:value (get st k)}))
 
-(defmethod mutate 'change/route!
+(defmethod mutate 'local/route!
   [{:keys [state]} _ {:keys [route]}]
   {:keys [:route/data]
    :action (fn []
              (swap! state assoc :route/data nil)
              (swap! state assoc :app/route route))})
 
-(defmethod mutate 'change/toggle-field!
+(defmethod mutate 'local/toggle-field!
   [{:keys [state]} _ {:keys [field field-state]}]
   {:keys [:app/local-state]
    :action (fn []

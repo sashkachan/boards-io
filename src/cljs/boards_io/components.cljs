@@ -67,7 +67,6 @@
                                (dom/a #js {:href "#"
                                            :onClick #(h/new-board {:reconciler (om/get-reconciler this)} )                                                  } "New board...") )
                       (let [{:keys [app/local-state]} (om/props this)]
-                        (println "BOARD?LIST_LOCAL_STATE " local-state)
                         (if (= 1 (:board/new-board-modal local-state))
                           (new-board-item {:root-query (get-root-query)
                                            :save-btn-state (:board/save-btn-field local-state)})))

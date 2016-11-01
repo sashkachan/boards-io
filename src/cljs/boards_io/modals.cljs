@@ -23,7 +23,6 @@
   Object
   (render
    [this]
-   (println "NEW_BOARD_PROPS "(om/props this))
    (let [{:keys [save-btn-state root-query] :as props} (om/props this)
          h-env {:reconciler (om/get-reconciler this)
                 :root-query root-query
