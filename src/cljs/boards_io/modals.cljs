@@ -23,18 +23,23 @@
   Object
   (render
    [this]
-   (println (om/props this))
-   (let [h-env {:reconciler (om/get-reconciler this) :root-query (:root-query (om/props this))}
+   (println "NEW_BOARD_PROPS "(om/props this))
+   (let [{:keys [save-btn-state root-query] :as props} (om/props this)
+         h-env {:reconciler (om/get-reconciler this)
+                :root-query root-query
+                :save-btn-field :board/save-btn-field}
          close (fn [b cl ar] (dom/button
                              #js {:type "button"
                                   :className cl
                                   :aria-label ar
                                   :onClick #(h/modal-close h-env :board/new-board-modal)}
                              (dom/span #js {:aria-hidden "true"} b)))
-         save (dom/button #js {:type "button"
-                               :className "btn btn-primary"
-                               :onClick #(h/new-board-save
-                                          h-env)} "Save")]
+         save-stngs (-> (cond-> {:type "button"
+                                 :className "btn btn-primary"
+                                 :onClick #(h/new-board-save h-env)}
+                          (= :off save-btn-state) (assoc :disabled "disabled"))
+                        clj->js)
+         save (dom/button save-stngs  "Save")]
      (dom/div #js {:id "modal-wrap"}
               (dom/div #js {:className "modal fade in"
                             :style #js {:display "visible"} }

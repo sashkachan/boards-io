@@ -66,18 +66,17 @@
              (swap! state assoc :route/data nil)
              (swap! state assoc :app/route route))})
 
-(defmethod mutate 'change/toggle-modal!
-  [{:keys [state]} _ {:keys [modal modal-state]}]
+(defmethod mutate 'change/toggle-field!
+  [{:keys [state]} _ {:keys [field field-state]}]
   {:keys [:app/local-state]
    :action (fn []
              (let [loc-state (get @state :app/local-state)
                    new-state (if loc-state loc-state {})
-                   new-modal-state (assoc new-state modal modal-state)]
-               (swap! state assoc :app/local-state new-modal-state)))})
+                   new-field-state (assoc new-state field field-state)]
+               (swap! state assoc :app/local-state new-field-state)))})
 
 (defmethod mutate 'save/new-board!
   [{:keys [state ref] :as env} _ {:keys [title description]}]
-  #_(println "save/new-board! cljs ref " ref)
   {:remote true
    #_:action #_ (fn []
              (let [st @state
