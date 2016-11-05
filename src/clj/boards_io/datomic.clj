@@ -63,12 +63,32 @@
                      :board/name "Personal"
                      :board/description "Personal board"}
 
-
                     {:db/id #db/id[:db.part/user]
                      :column/board #db/id[:db.part/user -100001]
                      :column/name "To-Do"}
 
-
                     {:db/id #db/id[:db.part/user]
                      :column/board #db/id[:db.part/user -100001]
-                     :column/name "Doing"}])
+                     :column/name "Doing"}
+                    
+                    {:db/id #db/id[:db.part/user]
+                     :column/board #db/id[:db.part/user -100001]
+                     :column/name "Backlog"}
+                    
+                    {:db/id #db/id[:db.part/user]
+                     :column/board #db/id[:db.part/user -100001]
+                     :column/name "Archived"}
+                    
+                    {:db/id #db/id[:db.part/user]
+                     :column/board #db/id[:db.part/user -100001]
+                     :column/name "Past-life"}
+                    
+                    {:db/id #db/id[:db.part/user]
+                     :column/board #db/id[:db.part/user -100001]
+                     :column/name "Next-life"}
+                    
+                    {:db/id #db/id[:db.part/user]
+                     :column/board #db/id[:db.part/user -100001]
+                     :column/name "Bored"}
+                    
+                    ])

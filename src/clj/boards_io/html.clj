@@ -14,7 +14,7 @@
       {:type "text/css", :rel "stylesheet", :href "/css/style.css"}]])
 
 (def nav
-  [:nav {:class "navbar navbar-default"}
+  [:nav {:class "navbar navbar-default" :id "header"}
    [:div {:class "container-fluid"}
     [:div {:class "navbar-header"}
      [:a {:class "navbar-brand" :href "/"} "Boards.io"]]

@@ -75,14 +75,6 @@
                    new-field-state (assoc new-state field field-state)]
                (swap! state assoc :app/local-state new-field-state)))})
 
-(defmethod mutate 'save/new-board!
-  [{:keys [state ref] :as env} _ {:keys [title description]}]
-  {:remote true
-   #_:action #_ (fn []
-             (let [st @state
-                   boards (get-in st [:route/data :boards :board/list])
-                   _ (println "new-state " st)
-                   new-boards (conj boards {:db/id 123
-                                            :board/name title
-                                            :board/description description})]
-               (swap! state assoc-in [:route/data :boards :board/list] new-boards )))} )
+(defmethod mutate :default
+  [{:keys [state ref] :as env} _ _]
+  {:remote true})

@@ -24,11 +24,13 @@
   Object
   (render [this]
           (println "ColumnList render props: " (om/props this))
-          (apply dom/div nil
+          (apply dom/div #js {:className "board-wrap"}
                  (vec (map
                       (fn [c]
                         (let [{:keys [column/name column/description column/board]} c]
-                          (dom/div nil (str name " - " (:board/name board)))))
+                          (dom/div
+                           #js {:className "board-column " :style #js {:border "1px solid black"}}
+                           (str name " - " (:board/name board)))))
                       (:column/list (om/props this)))))))
 
 (defui BoardItem

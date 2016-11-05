@@ -52,6 +52,4 @@
                                            new-board-form)
                                   (dom/div #js {:className "modal-footer"}
                                            [(close "Close" "btn btn-default" "")
-                                            save])]))))
-
-)))
+                                            save])])))))))
