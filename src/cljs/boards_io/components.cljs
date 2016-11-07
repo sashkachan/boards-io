@@ -35,7 +35,7 @@
           {:board-id 0})
   static om/IQuery
   (query [this]
-         `[({:column/list [*]} {:board-id ?board-id}) ])
+         '[({:column/list [:db/id :column/name {:column/board [*]} {:task/_column [*]}]} {:board-id ?board-id}) ])
 
   Object
   (render [this]

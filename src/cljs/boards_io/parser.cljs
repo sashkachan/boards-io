@@ -8,7 +8,7 @@
 (defmulti mutate om/dispatch)
 
 (defmethod read :board/list [{:keys [ast target] :as env} _ _]
-  (println ":borad/list with ast " ast )
+  (println ":board/list ast " ast)
   {target (assoc ast :query-root true)})
 
 (defmethod read :column/list [{:keys [ast target route] :as env} _ params]
@@ -18,9 +18,12 @@
 
 (defn get-query-root
   [{:keys [ast target parser] :as env}]
+  (println "get-query-root ast " ast)
   {target (update-in ast [:query]
                      #(let [q (if (vector? %) % [%])
-                            res (parser env q target)] res))})
+                            res (parser env q target)]
+                        (println "in update get-query-root " res)
+                        res))})
 
 
 (defmethod read :default
@@ -29,7 +32,9 @@
   (let [st @state
         path (conj db-path k)]
     (if (not= nil target)
-      (get-query-root env)
+      (let [query-root (get-query-root env)]
+        (println "query-root " query-root)
+        query-root)
       {:value (merge (get-in st path) (parser env query))})))
 
 
