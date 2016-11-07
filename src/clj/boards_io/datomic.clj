@@ -35,6 +35,14 @@
      :db/fulltext true
      :db/doc "A column board"
      :db.install/_attribute :db.part/db}
+
+    {:db/id #db/id[:db.part/db]
+     :db/ident :column/order
+     :db/valueType :db.type/long
+     :db/cardinality :db.cardinality/one
+     :db/fulltext true
+     :db/doc "A column order"
+     :db.install/_attribute :db.part/db}
     
     ;; task
     {:db/id #db/id[:db.part/db]
@@ -47,7 +55,7 @@
     
     {:db/id #db/id[:db.part/db]
      :db/ident :task/column
-     :db/valueType :db.type/string
+     :db/valueType :db.type/ref
      :db/cardinality :db.cardinality/one
      :db/fulltext true
      :db/doc "A task column"
@@ -63,32 +71,38 @@
                      :board/name "Personal"
                      :board/description "Personal board"}
 
-                    {:db/id #db/id[:db.part/user]
+                    {:db/id #db/id[:db.part/user -20001]
                      :column/board #db/id[:db.part/user -100001]
                      :column/name "To-Do"}
 
-                    {:db/id #db/id[:db.part/user]
+                    {:db/id #db/id[:db.part/user -20002]
                      :column/board #db/id[:db.part/user -100001]
-                     :column/name "Doing"}
+                     :column/name "Doing"
+                     :column/order 1}
                     
                     {:db/id #db/id[:db.part/user]
                      :column/board #db/id[:db.part/user -100001]
-                     :column/name "Backlog"}
+                     :column/name "Backlog"
+                     :column/order 2}
                     
                     {:db/id #db/id[:db.part/user]
                      :column/board #db/id[:db.part/user -100001]
-                     :column/name "Archived"}
-                    
+                     :column/name "Archived"
+                     :column/order 3}
+
                     {:db/id #db/id[:db.part/user]
-                     :column/board #db/id[:db.part/user -100001]
-                     :column/name "Past-life"}
-                    
+                     :task/name "Do the laundry"
+                     :task/column #db/id[:db.part/user -20001]
+                     }
+
                     {:db/id #db/id[:db.part/user]
-                     :column/board #db/id[:db.part/user -100001]
-                     :column/name "Next-life"}
-                    
+                     :task/name "Take a shower"
+                     :task/column #db/id[:db.part/user -20001]
+                     }
+
                     {:db/id #db/id[:db.part/user]
-                     :column/board #db/id[:db.part/user -100001]
-                     :column/name "Bored"}
+                     :task/name "Do some work"
+                     :task/column #db/id[:db.part/user -20002]
+                     }
                     
                     ])

@@ -8,6 +8,22 @@
 
 (declare get-root-query)
 
+(defui ColumnTasks
+  Object
+  (render [this]
+          (apply dom/div #js {:className "board-column-tasks"}
+                 (vec (map #(dom/div #js {:className "board-column-task-item"} (:task/name %)) (om/props this))))))
+
+(def column-tasks (om/factory ColumnTasks))
+
+(defui ColumnItem
+  Object
+  (render [this]
+          (println "ColumnItem")
+          (dom/div #js {:className "board-column "}
+                   [(dom/div #js {:className "board-column-title"} (str (:column/name (om/props this))))
+                    (column-tasks (:task/_column (om/props this)))] )))
+
 (defui ColumnList
   static om/Ident
   (ident [_ item]
@@ -19,19 +35,15 @@
           {:board-id 0})
   static om/IQuery
   (query [this]
-         `[({:column/list [ :column/name {:column/board [:db/id :board/name :board/description]}]} {:board-id ?board-id}) ])
+         `[({:column/list [*]} {:board-id ?board-id}) ])
 
   Object
   (render [this]
           (println "ColumnList render props: " (om/props this))
           (apply dom/div #js {:className "board-wrap"}
                  (vec (map
-                      (fn [c]
-                        (let [{:keys [column/name column/description column/board]} c]
-                          (dom/div
-                           #js {:className "board-column " :style #js {:border "1px solid black"}}
-                           (str name " - " (:board/name board)))))
-                      (:column/list (om/props this)))))))
+                       (om/factory ColumnItem)
+                       (:column/list (om/props this)))))))
 
 (defui BoardItem
   static om/Ident
@@ -55,7 +67,7 @@
 (defui BoardList
   static om/IQuery
   (query [this]
-         `[:app/local-state {:board/list ~(om/get-query BoardItem)}])
+         `[{:board/list ~(om/get-query BoardItem)} :app/local-state])
 
   Object
   (render [this]
@@ -67,7 +79,7 @@
                                         vec)))
                       (dom/div nil
                                (dom/a #js {:href "#"
-                                           :onClick #(h/new-board {:reconciler (om/get-reconciler this)} )                                                  } "New board...") )
+                                           :onClick #(h/new-board {:reconciler (om/get-reconciler this)} )} "New board..."))
                       (let [{:keys [app/local-state]} (om/props this)]
                         (if (= 1 (:board/new-board-modal local-state))
                           (new-board-item {:root-query (get-root-query)

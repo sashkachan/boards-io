@@ -8,6 +8,7 @@
 (defmulti mutate om/dispatch)
 
 (defmethod read :board/list [{:keys [ast target] :as env} _ _]
+  (println ":borad/list with ast " ast )
   {target (assoc ast :query-root true)})
 
 (defmethod read :column/list [{:keys [ast target route] :as env} _ params]
