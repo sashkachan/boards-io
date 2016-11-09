@@ -73,13 +73,23 @@
              (swap! state assoc :app/route route))})
 
 (defmethod mutate 'local/toggle-field!
-  [{:keys [state]} _ {:keys [field field-state]}]
+  [{:keys [state]} _ {:keys [field field-state ident]}]
   {:keys [:app/local-state]
    :action (fn []
              (let [loc-state (get @state :app/local-state)
                    new-state (if loc-state loc-state {})
-                   new-field-state (assoc new-state field field-state)]
+                   new-field-state (-> new-state
+                                       (assoc field field-state)
+                                       (assoc :field-idents {field ident}))]
                (swap! state assoc :app/local-state new-field-state)))})
+
+#_(defmethod mutate 'local/attempt-saving!
+  [{:keys [state]} _ [{:keys [op temp-id]}]]
+  {:keys [:app/local-state]
+   :action (fn []
+             (let [st @state]
+               (swap! state assoc-in [:app/local-state :temp] op temp-id)))}
+  )
 
 (defmethod mutate :default
   [{:keys [state ref] :as env} _ _]

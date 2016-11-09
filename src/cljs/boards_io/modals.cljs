@@ -19,11 +19,11 @@
                              :placeholder "Description"}
                         )])))
 
-(defui NewBoardItemModal
+(defui Modal
   Object
   (render
    [this]
-   (let [{:keys [save-btn-state root-query] :as props} (om/props this)
+   (let [{:keys [save-btn-state root-query ref modal-content submit-fn title] :as props} (om/props this)
          h-env {:reconciler (om/get-reconciler this)
                 :root-query root-query
                 :save-btn-field :board/save-btn-field}
@@ -31,11 +31,11 @@
                              #js {:type "button"
                                   :className cl
                                   :aria-label ar
-                                  :onClick #(h/modal-close h-env :board/new-board-modal)}
+                                  :onClick #(h/modal-close (assoc h-env :ref ref))}
                              (dom/span #js {:aria-hidden "true"} b)))
          save-stngs (-> (cond-> {:type "button"
                                  :className "btn btn-primary"
-                                 :onClick #(h/new-board-save h-env)}
+                                 :onClick #(submit-fn h-env)}
                           (= :off save-btn-state) (assoc :disabled "disabled"))
                         clj->js)
          save (dom/button save-stngs  "Save")]
@@ -47,9 +47,11 @@
                         (dom/div #js {:className "modal-content"}
                                  [(dom/div #js {:className "modal-header"}
                                            [(close "×" "close" "Close")
-                                            (dom/h4 #js {:className "modal-title"} "Create new board:")])
+                                            (dom/h4 #js {:className "modal-title"} title)])
                                   (dom/div #js {:className "modal-body"}
-                                           new-board-form)
+                                           modal-content)
                                   (dom/div #js {:className "modal-footer"}
                                            [(close "Close" "btn btn-default" "")
-                                            save])])))))))
+                                            save])]))))
+
+     )))

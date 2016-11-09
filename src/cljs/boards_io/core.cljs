@@ -30,6 +30,7 @@
              {:keys [:route/data]
               :next (let [cur-rd (get s :route/data)
                           new-rd (merge cur-rd n)]
+                      (println "novelty: " n)
                       (assoc s :route/data new-rd))})
     :send (transit/transit-post "/api")}))
 

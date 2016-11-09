@@ -36,3 +36,7 @@
     width: 200px;
     margin: 0 10px;
 }
+
+.board-column-new-item {
+    font-style: italic;
+}

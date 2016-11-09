@@ -11,11 +11,11 @@
                          ~query-root
                          ])))
 
+(defn modal-open [{:keys [reconciler ref ident]}]
+  (om/transact! reconciler
+   `[(local/toggle-field! {:field ~ref :field-state 1 :ident ~ident})]))
 
-(defn new-board [{:keys [reconciler]} ]
-  (om/transact! reconciler '[(local/toggle-field! {:field :board/new-board-modal :field-state 1})]))
-
-(defn modal-close [{:keys [reconciler]} ref]
+(defn modal-close [{:keys [reconciler ref]} ]
   (om/transact! reconciler `[(local/toggle-field! {:field ~ref :field-state 0})]))
 
 (defn new-board-save [{:keys [reconciler root-query save-btn-field] :as env}]
@@ -27,5 +27,6 @@
                   `[(local/toggle-field! {:field ~save-btn-field :field-state :off})
                     (save/new-board! {:title ~title :description ~description})
                     ~root-query
-                    (local/toggle-field! {:field ~save-btn-field :field-state :on})])
-    (modal-close env :board/new-board-modal)))
+                    (local/toggle-field! {:field :board/save-btn-field :field-state :on})
+                    ])
+    (modal-close (assoc env :ref :board/new-board-modal))))

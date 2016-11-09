@@ -8,6 +8,8 @@
 
 (declare get-root-query)
 
+(def modal (om/factory m/Modal))
+
 (defui ColumnTasks
   Object
   (render [this]
@@ -22,7 +24,9 @@
           (println "ColumnItem")
           (dom/div #js {:className "board-column "}
                    [(dom/div #js {:className "board-column-title"} (str (:column/name (om/props this))))
-                    (column-tasks (:task/_column (om/props this)))] )))
+                    (column-tasks (:task/_column (om/props this)))
+                    (dom/div #js {:className "board-column-new-item"}
+                             (dom/a #js {:href "#" :onClick #(h/modal-open {:reconciler (om/get-reconciler this) :ref :column/new-task-modal :ident {:db/id (:db/id (om/props this))}} )} "New item..." ))] )))
 
 (defui ColumnList
   static om/Ident
@@ -35,15 +39,23 @@
           {:board-id 0})
   static om/IQuery
   (query [this]
-         '[({:column/list [:db/id :column/name {:column/board [*]} {:task/_column [*]}]} {:board-id ?board-id}) ])
+         '[({:column/list [:db/id :column/name {:column/board [*]} {:task/_column [*]}]} {:board-id ?board-id}) :app/local-state])
 
   Object
   (render [this]
-          (println "ColumnList render props: " (om/props this))
-          (apply dom/div #js {:className "board-wrap"}
-                 (vec (map
-                       (om/factory ColumnItem)
-                       (:column/list (om/props this)))))))
+          (let [{:keys [app/local-state]} (om/props this)]
+            (println "ColumnList render props: " (om/props this))
+            (dom/div #js {:className "board-wrap"}
+                     (cond-> (vec (map
+                                   (om/factory ColumnItem)
+                                   (:column/list (om/props this))))
+                       (= 1 (:column/new-task-modal local-state))
+                       (conj (modal {:root-query (get-root-query)
+                                     :save-btn-state (:column/save-btn-field local-state)
+                                     :ref :column/new-task-modal
+                                     :submit-fn (partial identity)
+                                     :modal-content "hi task content"
+                                     :title "Create new task"}) ) )))))
 
 (defui BoardItem
   static om/Ident
@@ -61,7 +73,6 @@
              (dom/p nil description)))))
 
 (def board-item (om/factory BoardItem {:keyfn :db/id}))
-(def new-board-item (om/factory m/NewBoardItemModal))
 
 
 (defui BoardList
@@ -79,11 +90,15 @@
                                         vec)))
                       (dom/div nil
                                (dom/a #js {:href "#"
-                                           :onClick #(h/new-board {:reconciler (om/get-reconciler this)} )} "New board..."))
+                                           :onClick #(h/modal-open {:reconciler (om/get-reconciler this) :ref :board/new-board-modal} )} "New board..."))
                       (let [{:keys [app/local-state]} (om/props this)]
                         (if (= 1 (:board/new-board-modal local-state))
-                          (new-board-item {:root-query (get-root-query)
-                                           :save-btn-state (:board/save-btn-field local-state)})))
+                          (modal {:root-query (get-root-query)
+                                  :save-btn-state (:board/save-btn-field local-state)
+                                  :ref :board/new-board-modal
+                                  :submit-fn (partial h/new-board-save)
+                                  :modal-content m/new-board-form
+                                  :title "Create new board"})))
                       ])))
 
 (def route->component
