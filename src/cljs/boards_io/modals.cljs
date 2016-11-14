@@ -19,19 +19,31 @@
                              :placeholder "Description"}
                         )])))
 
+(def new-task-form
+  (dom/form
+   #js {:id "new-task-form"}
+   (dom/div #js {:className "form-group"}
+            [(dom/input #js {:type "text"
+                             :name "task-title"
+                             :className "form-control"
+                             :placeholder "Title"}
+                        )])))
+
 (defui Modal
   Object
   (render
    [this]
-   (let [{:keys [save-btn-state root-query ref modal-content submit-fn title] :as props} (om/props this)
+   (let [{:keys [save-btn-state root-query ref modal-content submit-fn title extras] :as props} (om/props this)
          h-env {:reconciler (om/get-reconciler this)
                 :root-query root-query
-                :save-btn-field :board/save-btn-field}
+                :save-btn-field :board/save-btn-field
+                :ref ref
+                :extras extras}
          close (fn [b cl ar] (dom/button
                              #js {:type "button"
                                   :className cl
                                   :aria-label ar
-                                  :onClick #(h/modal-close (assoc h-env :ref ref))}
+                                  :onClick #(h/modal-close h-env)}
                              (dom/span #js {:aria-hidden "true"} b)))
          save-stngs (-> (cond-> {:type "button"
                                  :className "btn btn-primary"

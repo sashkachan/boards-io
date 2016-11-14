@@ -48,3 +48,9 @@
                                    :board/name ~title
                                    :board/description ~description}]))
    })
+
+(defmethod mutatef 'save/new-task!
+  [{:keys [conn] :as env} k {:keys [title column-id] :as params}]
+  (println " -- save/new-task! " env params)
+  
+)

@@ -21,12 +21,12 @@
 (defui ColumnItem
   Object
   (render [this]
-          (println "ColumnItem")
+          (println "ColumnItem" (:db/id (om/props this)))
           (dom/div #js {:className "board-column "}
                    [(dom/div #js {:className "board-column-title"} (str (:column/name (om/props this))))
                     (column-tasks (:task/_column (om/props this)))
                     (dom/div #js {:className "board-column-new-item"}
-                             (dom/a #js {:href "#" :onClick #(h/modal-open {:reconciler (om/get-reconciler this) :ref :column/new-task-modal :ident {:db/id (:db/id (om/props this))}} )} "New item..." ))] )))
+                             (dom/a #js {:href "#" :onClick #(h/modal-open {:reconciler (om/get-reconciler this) :ref :column/new-task-modal :ident {:column-id (:db/id (om/props this))}} )} "New item..." ))] )))
 
 (defui ColumnList
   static om/Ident
@@ -53,8 +53,9 @@
                        (conj (modal {:root-query (get-root-query)
                                      :save-btn-state (:column/save-btn-field local-state)
                                      :ref :column/new-task-modal
-                                     :submit-fn (partial identity)
-                                     :modal-content "hi task content"
+                                     :submit-fn (partial h/new-task-save)
+                                     :modal-content m/new-task-form
+                                     :extras (-> local-state :field-idents :column/new-task-modal)
                                      :title "Create new task"}) ) )))))
 
 (defui BoardItem
