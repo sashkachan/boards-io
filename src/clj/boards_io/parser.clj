@@ -51,6 +51,13 @@
 
 (defmethod mutatef 'save/new-task!
   [{:keys [conn] :as env} k {:keys [title column-id] :as params}]
-  (println " -- save/new-task! " env params)
+  (println " -- save/new-task! " env params
+           )
+  {:value {:keys '[:column/list]}
+   :action (fn []
+             @(d/transact conn `[{:db/id #db/id[:db.part/user]
+                                  :task/name ~title
+                                  :task/column ~column-id}]))
+   }
   
 )
