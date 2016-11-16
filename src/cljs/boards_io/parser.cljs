@@ -83,14 +83,6 @@
                                        (assoc :field-idents {field ident}))]
                (swap! state assoc :app/local-state new-field-state)))})
 
-#_(defmethod mutate 'local/attempt-saving!
-  [{:keys [state]} _ [{:keys [op temp-id]}]]
-  {:keys [:app/local-state]
-   :action (fn []
-             (let [st @state]
-               (swap! state assoc-in [:app/local-state :temp] op temp-id)))}
-  )
-
 (defmethod mutate :default
   [{:keys [state ref] :as env} _ _]
   {:remote true})

@@ -43,3 +43,16 @@
                     (local/toggle-field! {:field ~save-btn-field :field-state :on})
                     ])
     (modal-close env)))
+
+(defn new-column-save [{:keys [reconciler root-query save-btn-field extras] :as env}]
+  ; todo: if nil? extras -> exception!
+  (let [board-id (:board-id extras)
+        form (gdom/getElement "new-column-form")
+        title (forms/getValueByName form "column-title")]
+    (om/transact! reconciler
+                  `[(local/toggle-field! {:field ~save-btn-field :field-state :off})
+                    (save/new-column! {:title ~title :board-id ~board-id})
+                    ~root-query
+                    (local/toggle-field! {:field ~save-btn-field :field-state :on})
+                    ])
+    (modal-close env)))

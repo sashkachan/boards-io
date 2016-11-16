@@ -19,12 +19,24 @@
                              :placeholder "Description"}
                         )])))
 
+
+
 (def new-task-form
   (dom/form
    #js {:id "new-task-form"}
    (dom/div #js {:className "form-group"}
             [(dom/input #js {:type "text"
                              :name "task-title"
+                             :className "form-control"
+                             :placeholder "Title"}
+                        )])))
+
+(def new-column-form
+  (dom/form
+   #js {:id "new-column-form"}
+   (dom/div #js {:className "form-group"}
+            [(dom/input #js {:type "text"
+                             :name "column-title"
                              :className "form-control"
                              :placeholder "Title"}
                         )])))

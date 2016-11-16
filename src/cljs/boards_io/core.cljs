@@ -50,15 +50,17 @@
    [this]
    (nav/wire-up (nav/new-history) #(h/change-route! (assoc env :this this) %)))
 
-  (componentDidUpdate [this _ _]
-                      (println "Root component updated " (om/props this)))
+  (componentDidUpdate [this _ _]                      
+                      (println "Root component updated " (om/props this))
+                      (println "component children " (om/children this)))
   
   (render [this]
           (println "root data " (om/props this))
           (let [{:keys [app/route route/data]} (om/props this)
                 pr (first route)]
             (if (not= nil pr)
-              ((c/route->factory pr) (get data pr)))
+              (let [component ((c/route->factory pr) (get data pr))]
+                component))
             )))
 
 (om/add-root! reconciler Root (js/document.getElementById "app"))

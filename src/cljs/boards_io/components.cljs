@@ -22,7 +22,7 @@
   Object
   (render [this]
           (println "ColumnItem" (:db/id (om/props this)))
-          (dom/div #js {:className "board-column "}
+          (dom/div #js {:className "board-column"}
                    [(dom/div #js {:className "board-column-title"} (str (:column/name (om/props this))))
                     (column-tasks (:task/_column (om/props this)))
                     (dom/div #js {:className "board-column-new-item"}
@@ -39,16 +39,31 @@
           {:board-id 0})
   static om/IQuery
   (query [this]
-         '[({:column/list [:db/id :column/name {:column/board [*]} {:task/_column [*]}]} {:board-id ?board-id}) :app/local-state])
+         '[({:column/list [:db/id :column/name {:column/board [*]} {:task/_column [*]}]} {:board-id ?board-id}) :app/local-state :app/route])
 
   Object
   (render [this]
-          (let [{:keys [app/local-state]} (om/props this)]
+          (let [{:keys [app/local-state]} (om/props this)
+                board-id (js/parseInt (-> (om/props this) :app/route second :board-id))]
             (println "ColumnList render props: " (om/props this))
             (dom/div #js {:className "board-wrap"}
-                     (cond-> (vec (map
-                                   (om/factory ColumnItem)
-                                   (:column/list (om/props this))))
+                     (cond-> (merge (vec (map
+                                           (om/factory ColumnItem)
+                                           (:column/list (om/props this))))
+                                    (dom/div #js {:className "board-column"}
+                                             (dom/a #js {:href "#"
+                                                         :onClick #(h/modal-open
+                                                                    {:reconciler (om/get-reconciler this)
+                                                                     :ref :column/new-column-modal
+                                                                     :ident {:board-id board-id}} )} "New column...") ))
+                       (= 1 (:column/new-column-modal local-state))
+                       (conj (modal {:root-query (get-root-query)
+                                     :save-btn-state (:column/save-btn-field local-state)
+                                     :ref :column/new-column-modal
+                                     :submit-fn (partial h/new-column-save)
+                                     :modal-content m/new-column-form
+                                     :extras (-> local-state :field-idents :column/new-column-modal)
+                                     :title "Create new column"}))
                        (= 1 (:column/new-task-modal local-state))
                        (conj (modal {:root-query (get-root-query)
                                      :save-btn-state (:column/save-btn-field local-state)
