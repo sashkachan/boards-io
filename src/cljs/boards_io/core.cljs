@@ -20,7 +20,7 @@
 
 (enable-console-print!)
 
-(defonce state (atom {:app/route [] :app/local-state {}}))
+(defonce state (atom {:app/route []}))
 
 (def reconciler
   (om/reconciler

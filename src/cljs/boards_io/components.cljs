@@ -39,7 +39,13 @@
           {:board-id 0})
   static om/IQuery
   (query [this]
-         '[({:column/list [:db/id :column/name {:column/board [*]} {:task/_column [*]}]} {:board-id ?board-id}) :app/local-state :app/route])
+         '[({:column/list [:db/id :column/name {:column/board [*]}
+                           {:task/_column [*]}]} {:board-id ?board-id})
+           {:app/local-state [:column/new-column-modal
+                              :column/new-task-modal
+                              :column/save-btn-field
+                              :field-idents]}
+           :app/route])
 
   Object
   (render [this]
@@ -56,17 +62,18 @@
                                                                     {:reconciler (om/get-reconciler this)
                                                                      :ref :column/new-column-modal
                                                                      :ident {:board-id board-id}} )} "New column...") ))
-                       (= 1 (:column/new-column-modal local-state))
+                       
+                       (= 1 (-> local-state :column/new-column-modal :state))
                        (conj (modal {:root-query (get-root-query)
-                                     :save-btn-state (:column/save-btn-field local-state)
+                                     :save-btn-state (-> local-state :column/save-btn-field :state)
                                      :ref :column/new-column-modal
                                      :submit-fn (partial h/new-column-save)
                                      :modal-content m/new-column-form
                                      :extras (-> local-state :field-idents :column/new-column-modal)
                                      :title "Create new column"}))
-                       (= 1 (:column/new-task-modal local-state))
+                       (= 1 (-> local-state :column/new-task-modal :state ))
                        (conj (modal {:root-query (get-root-query)
-                                     :save-btn-state (:column/save-btn-field local-state)
+                                     :save-btn-state ( -> local-state :column/save-btn-field :state)
                                      :ref :column/new-task-modal
                                      :submit-fn (partial h/new-task-save)
                                      :modal-content m/new-task-form
@@ -94,7 +101,7 @@
 (defui BoardList
   static om/IQuery
   (query [this]
-         `[{:board/list ~(om/get-query BoardItem)} :app/local-state])
+         `[{:board/list ~(om/get-query BoardItem)} {:app/local-state [:board/new-board-modal]} ])
 
   Object
   (render [this]
@@ -108,9 +115,10 @@
                                (dom/a #js {:href "#"
                                            :onClick #(h/modal-open {:reconciler (om/get-reconciler this) :ref :board/new-board-modal} )} "New board..."))
                       (let [{:keys [app/local-state]} (om/props this)]
-                        (if (= 1 (:board/new-board-modal local-state))
+                        (println "app/local-state is " local-state)
+                        (if (= 1 (-> local-state :board/new-board-modal :state))
                           (modal {:root-query (get-root-query)
-                                  :save-btn-state (:board/save-btn-field local-state)
+                                  :save-btn-state (-> local-state :board/save-btn-field :state)
                                   :ref :board/new-board-modal
                                   :submit-fn (partial h/new-board-save)
                                   :modal-content m/new-board-form

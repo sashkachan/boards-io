@@ -28,10 +28,10 @@
 
 (defmethod read :default
   [{:keys [target state query parser db-path] :as env} k _]
-  (println k " subquery: " (parser env query target))
+  (println k " query " query " subquery: " (parser env query target) " target " target)
   (let [st @state
         path (conj db-path k)]
-    (if (not= nil target)
+    (if (and  (not= nil target) (not= nil query))
       (let [query-root (get-query-root env)]
         (println "query-root " query-root)
         query-root)
@@ -55,11 +55,6 @@
           (not= nil target) (assoc target (parser/expr->ast (first parsed)))
           (= nil target ) (assoc :value parsed))))))
 
-(defmethod read :app/local-state
-  [{:keys [state env query]} key _]
-  (let [st @state]
-    {:value (get st :app/local-state)}))
-
 (defmethod read :app/route
   [{:keys [state query]} k _]
   (let [st @state]
@@ -76,12 +71,8 @@
   [{:keys [state]} _ {:keys [field field-state ident]}]
   {:keys [:app/local-state]
    :action (fn []
-             (let [loc-state (get @state :app/local-state)
-                   new-state (if loc-state loc-state {})
-                   new-field-state (-> new-state
-                                       (assoc field field-state)
-                                       (assoc :field-idents {field ident}))]
-               (swap! state assoc :app/local-state new-field-state)))})
+             (swap! state assoc-in [:route/data field] {:state field-state} )
+             (swap! state assoc-in [:route/data :field-idents] {field ident}))})
 
 (defmethod mutate :default
   [{:keys [state ref] :as env} _ _]
