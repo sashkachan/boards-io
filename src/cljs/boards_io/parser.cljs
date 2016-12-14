@@ -8,7 +8,7 @@
 (defmulti mutate om/dispatch)
 
 (defmethod read :board/list [{:keys [ast target] :as env} _ _]
-  (println ":board/list ast " ast)
+  #_(println ":board/list ast " ast)
   {target (assoc ast :query-root true)})
 
 (defmethod read :column/list [{:keys [ast target route] :as env} _ params]
@@ -18,24 +18,23 @@
 
 (defn get-query-root
   [{:keys [ast target parser] :as env}]
-  (println "get-query-root ast " ast)
+  #_(println "get-query-root ast " ast)
   {target (update-in ast [:query]
                      #(let [q (if (vector? %) % [%])
                             res (parser env q target)]
-                        (println "in update get-query-root " res)
+                        #_(println "in update get-query-root " res)
                         res))})
-
 
 (defmethod read :default
   [{:keys [target state query parser db-path] :as env} k _]
-  (println k " query " query " subquery: " (parser env query target) " target " target)
+  #_(println k " query " query " subquery: " (parser env query target) " target " target)
   (let [st @state
         path (conj db-path k)]
-    (if (and  (not= nil target) (not= nil query))
-      (let [query-root (get-query-root env)]
-        (println "query-root " query-root)
-        query-root)
-      {:value (merge (get-in st path) (parser env query))})))
+    (cond-> {}
+      (and (not= nil target) (not= nil query))
+      (merge (get-query-root env))
+      (nil? target)
+      (assoc :value (merge (get-in st path) (parser env query))))))
 
 
 (defmethod read :route/data 

@@ -21,12 +21,32 @@
 (defui ColumnItem
   Object
   (render [this]
-          (println "ColumnItem" (:db/id (om/props this)))
-          (dom/div #js {:className "board-column"}
-                   [(dom/div #js {:className "board-column-title"} (str (:column/name (om/props this))))
+          #_          (println "ColumnItem" ( om/props this))
+          (dom/div #js {:className "board-column" :onMouseDown (fn [e] (h/moving-init {:reconciler this :root-query (get-root-query) :component this :ident {:column-id (:db/id (om/props this))}}))}
+                   [(dom/div #js {:className "board-column-title"} (str (:column/name (om/props this)) ))
                     (column-tasks (:task/_column (om/props this)))
                     (dom/div #js {:className "board-column-new-item"}
                              (dom/a #js {:href "#" :onClick #(h/modal-open {:reconciler (om/get-reconciler this) :ref :column/new-task-modal :ident {:column-id (:db/id (om/props this))}} )} "New item..." ))] )))
+
+(def column-item (om/factory ColumnItem))
+
+(defui ColumnWrap
+  Object
+  (render [this]
+          (let [{:keys [moving field-idents] :as props} (om/props this)]
+            (println "ColumnWrap list " props)
+            (apply dom/div nil
+                   (map (fn [e]
+                          (let [mov-col-id (-> field-idents :column-id) ]
+                            (println "mov-col-id " mov-col-id " col-id " (:db/id e) )
+                            (if (= (:db/id e) mov-col-id)
+                              (column-item (assoc e :moving true))
+                              (column-item e)))) (:list props)))
+            )
+          ;; 
+          ))
+
+(def column-wrap (om/factory ColumnWrap))
 
 (defui ColumnList
   static om/Ident
@@ -40,8 +60,9 @@
   static om/IQuery
   (query [this]
          '[({:column/list [:db/id :column/name {:column/board [*]}
-                           {:task/_column [*]}]} {:board-id ?board-id})
-           {:app/local-state [:column/new-column-modal
+                           {:task/_column [*]} {:app/local-state [:column/moving]} ]} {:board-id ?board-id})
+           {:app/local-state [:column/moving
+                              :column/new-column-modal
                               :column/new-task-modal
                               :column/save-btn-field
                               :field-idents]}
@@ -53,9 +74,10 @@
                 board-id (js/parseInt (-> (om/props this) :app/route second :board-id))]
             (println "ColumnList render props: " (om/props this))
             (dom/div #js {:className "board-wrap"}
-                     (cond-> (merge (vec (map
-                                           (om/factory ColumnItem)
-                                           (:column/list (om/props this))))
+                     (cond-> (merge []
+                                    (column-wrap {:list (:column/list (om/props this))
+                                                  :moving (-> local-state :column/moving )
+                                                  :field-idents (-> local-state :field-idents :column/moving) })
                                     (dom/div #js {:className "board-column"}
                                              (dom/a #js {:href "#"
                                                          :onClick #(h/modal-open

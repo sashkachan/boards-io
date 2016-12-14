@@ -56,3 +56,7 @@
                     (local/toggle-field! {:field ~save-btn-field :field-state :on})
                     ])
     (modal-close env)))
+
+(defn moving-init [{:keys [reconciler component root-query ident] :as env}]
+  (om/transact! reconciler
+                `[(local/toggle-field! {:field :column/moving :field-state :moving :ident ~ident})]))
