@@ -37,6 +37,10 @@
     margin: 0 10px;
 }
 
+.new-column {
+    order: 9999;
+}
+
 .board-column-new-item {
     font-style: italic;
 }

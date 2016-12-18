@@ -73,22 +73,23 @@
 
                     {:db/id #db/id[:db.part/user -20001]
                      :column/board #db/id[:db.part/user -100001]
+                     :column/order 1
                      :column/name "To-Do"}
 
                     {:db/id #db/id[:db.part/user -20002]
                      :column/board #db/id[:db.part/user -100001]
                      :column/name "Doing"
-                     :column/order 1}
-                    
-                    {:db/id #db/id[:db.part/user]
-                     :column/board #db/id[:db.part/user -100001]
-                     :column/name "Backlog"
                      :column/order 2}
                     
                     {:db/id #db/id[:db.part/user]
                      :column/board #db/id[:db.part/user -100001]
-                     :column/name "Archived"
+                     :column/name "Backlog"
                      :column/order 3}
+                    
+                    {:db/id #db/id[:db.part/user]
+                     :column/board #db/id[:db.part/user -100001]
+                     :column/name "Archived"
+                     :column/order 4}
 
                     {:db/id #db/id[:db.part/user]
                      :task/name "Do the laundry"

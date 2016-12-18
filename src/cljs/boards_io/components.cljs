@@ -21,16 +21,25 @@
 (defui ColumnItem
   Object
   (render [this]
-          #_          (println "ColumnItem" ( om/props this))
-          (dom/div #js {:className "board-column" :onMouseDown (fn [e] (h/moving-init {:reconciler this :root-query (get-root-query) :component this :ident {:column-id (:db/id (om/props this))}}))}
-                   [(dom/div #js {:className "board-column-title"} (str (:column/name (om/props this)) ))
-                    (column-tasks (:task/_column (om/props this)))
-                    (dom/div #js {:className "board-column-new-item"}
-                             (dom/a #js {:href "#" :onClick #(h/modal-open {:reconciler (om/get-reconciler this) :ref :column/new-task-modal :ident {:column-id (:db/id (om/props this))}} )} "New item..." ))] )))
+          #_(println "ColumnItem" ( om/props this))
+          (let [class-name (str "board-column " (if (-> this om/props :moving) "moving" ""))
+                style #js { :order (-> this om/props :column/order) }]
+            (dom/div #js {:className class-name
+                          :style style
+                          :onMouseDown (fn [e]
+                                         (h/moving-init
+                                          {:reconciler this
+                                           :root-query (get-root-query)
+                                           :component this
+                                           :ident {:column-id (:db/id (om/props this))}}))}
+                     [(dom/div #js {:className "board-column-title"} (str (:column/name (om/props this)) ))
+                      (column-tasks (:task/_column (om/props this)))
+                      (dom/div #js {:className "board-column-new-item"}
+                               (dom/a #js {:href "#" :onClick #(h/modal-open {:reconciler (om/get-reconciler this) :ref :column/new-task-modal :ident {:column-id (:db/id (om/props this))}} )} "New item..." ))]))))
 
 (def column-item (om/factory ColumnItem))
 
-(defui ColumnWrap
+#_(defui ColumnWrap
   Object
   (render [this]
           (let [{:keys [moving field-idents] :as props} (om/props this)]
@@ -42,11 +51,17 @@
                             (if (= (:db/id e) mov-col-id)
                               (column-item (assoc e :moving true))
                               (column-item e)))) (:list props)))
-            )
-          ;; 
-          ))
+            )))
 
-(def column-wrap (om/factory ColumnWrap))
+#_(def column-wrap (om/factory ColumnWrap))
+
+(defn column-wrap [props]
+  (let [{:keys [moving field-idents]} props]
+    (vec (map (fn [e]
+                (let [mov-col-id (-> field-idents :column-id)]
+                  (if (= (:db/id e) mov-col-id)
+                    (column-item (assoc e :moving true))
+                    (column-item e)))) (:list props)))))
 
 (defui ColumnList
   static om/Ident
@@ -59,7 +74,7 @@
           {:board-id 0})
   static om/IQuery
   (query [this]
-         '[({:column/list [:db/id :column/name {:column/board [*]}
+         '[({:column/list [:db/id :column/name :column/order {:column/board [*]}
                            {:task/_column [*]} {:app/local-state [:column/moving]} ]} {:board-id ?board-id})
            {:app/local-state [:column/moving
                               :column/new-column-modal
@@ -71,20 +86,21 @@
   Object
   (render [this]
           (let [{:keys [app/local-state]} (om/props this)
-                board-id (js/parseInt (-> (om/props this) :app/route second :board-id))]
-            (println "ColumnList render props: " (om/props this))
-            (dom/div #js {:className "board-wrap"}
-                     (cond-> (merge []
-                                    (column-wrap {:list (:column/list (om/props this))
-                                                  :moving (-> local-state :column/moving )
-                                                  :field-idents (-> local-state :field-idents :column/moving) })
-                                    (dom/div #js {:className "board-column"}
+                board-id (js/parseInt (-> (om/props this) :app/route second :board-id))
+                cols (merge
+                      (column-wrap {:list (:column/list (om/props this))
+                                    :moving (-> local-state :column/moving )
+                                    :field-idents (-> local-state :field-idents :column/moving) })
+                                    
+                                    (dom/div #js {:className "board-column new-column"}
                                              (dom/a #js {:href "#"
                                                          :onClick #(h/modal-open
                                                                     {:reconciler (om/get-reconciler this)
                                                                      :ref :column/new-column-modal
-                                                                     :ident {:board-id board-id}} )} "New column...") ))
-                       
+                                                                     :ident {:board-id board-id}} )} "New column...")))]
+            (println "ColumnList render props: " (om/props this))
+            (dom/div #js {:className "board-wrap"}
+                     (cond-> cols
                        (= 1 (-> local-state :column/new-column-modal :state))
                        (conj (modal {:root-query (get-root-query)
                                      :save-btn-state (-> local-state :column/save-btn-field :state)
@@ -100,7 +116,7 @@
                                      :submit-fn (partial h/new-task-save)
                                      :modal-content m/new-task-form
                                      :extras (-> local-state :field-idents :column/new-task-modal)
-                                     :title "Create new task"}) ) )))))
+                                     :title "Create new task"}) ))))))
 
 (defui BoardItem
   static om/Ident
