@@ -4,6 +4,7 @@
             [boards-io.router :as router]
             [boards-io.modals :as m]
             [om.dom :as dom]
+            [goog.events :as events]
             [om.next :as om :refer-macros [defui ui]]))
 
 (declare get-root-query)
@@ -21,17 +22,18 @@
 (defui ColumnItem
   Object
   (render [this]
-          #_(println "ColumnItem" ( om/props this))
           (let [class-name (str "board-column " (if (-> this om/props :moving) "moving" ""))
                 style #js { :order (-> this om/props :column/order) }]
             (dom/div #js {:className class-name
                           :style style
-                          :onMouseDown (fn [e]
-                                         (h/moving-init
+                          :draggable "true"
+                          :onDragStart (fn [e]
+                                         (h/drag-start
                                           {:reconciler this
                                            :root-query (get-root-query)
                                            :component this
-                                           :ident {:column-id (:db/id (om/props this))}}))}
+                                           :ident {:column-id (:db/id (om/props this))}}))
+                          :onDragEnd (fn [e] (h/drag-end {:reconciler this :root-query (get-root-query :component this :ident {:column-id (:db/id (om/props this))})}))}
                      [(dom/div #js {:className "board-column-title"} (str (:column/name (om/props this)) ))
                       (column-tasks (:task/_column (om/props this)))
                       (dom/div #js {:className "board-column-new-item"}
@@ -59,14 +61,13 @@
   (let [{:keys [moving field-idents]} props]
     (vec (map (fn [e]
                 (let [mov-col-id (-> field-idents :column-id)]
-                  (if (= (:db/id e) mov-col-id)
+                  (if (and (= moving :drag-start) (= (:db/id e) mov-col-id)) 
                     (column-item (assoc e :moving true))
                     (column-item e)))) (:list props)))))
 
 (defui ColumnList
   static om/Ident
   (ident [_ item]
-         (println "ColList Ident " item)
          [:column/by-id (-> item :db/id)])
 
   static om/IQueryParams
@@ -89,7 +90,7 @@
                 board-id (js/parseInt (-> (om/props this) :app/route second :board-id))
                 cols (merge
                       (column-wrap {:list (:column/list (om/props this))
-                                    :moving (-> local-state :column/moving )
+                                    :moving (-> local-state :column/moving :state )
                                     :field-idents (-> local-state :field-idents :column/moving) })
                                     
                                     (dom/div #js {:className "board-column new-column"}

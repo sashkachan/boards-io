@@ -43,7 +43,8 @@
   static om/IQuery
   (query [this]
          `[:app/route
-          ~(c/get-root-query)])
+           ~(c/get-root-query)
+           :app/events])
 
   Object
   (componentDidMount
@@ -51,8 +52,12 @@
    (nav/wire-up (nav/new-history) #(h/change-route! (assoc env :this this) %)))
 
   (componentDidUpdate [this _ _]                      
-                      (println "Root component updated " (om/props this))
-                      (println "component children " (om/children this)))
+                      ;; (println "Root component updated " (om/props this))
+                      ;; (println "component children " (om/children this))
+                      ;; add event handlers on body
+                      #_(events/listen js/document.body events/EventType.CLICK (fn [e] (println "click issued!") ))
+                      
+                      )
   
   (render [this]
           (println "root data " (om/props this))
