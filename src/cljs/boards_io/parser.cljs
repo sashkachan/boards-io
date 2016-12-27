@@ -73,6 +73,13 @@
              (swap! state assoc-in [:route/data field] {:state field-state} )
              (swap! state assoc-in [:route/data :field-idents] {field ident}))})
 
+(defmethod mutate 'local/update-order!
+  [{:keys [state]} _ {:keys [target-column-id dragged-column-id]}]
+  (let [st @state
+        route (-> (get st :app/route) first)]
+    (println "current order " (-> st :route/data route :column/list))
+    {:action (fn [])}))
+
 (defmethod mutate :default
   [{:keys [state ref] :as env} _ _]
   {:remote true})

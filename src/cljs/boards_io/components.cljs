@@ -23,17 +23,18 @@
   Object
   (render [this]
           (let [class-name (str "board-column " (if (-> this om/props :moving) "moving" ""))
-                style #js { :order (-> this om/props :column/order) }]
+                style #js {:order (-> this om/props :column/order) }
+                column-id (:db/id (om/props this))
+                drag-data-map {:reconciler this
+                               :root-query (get-root-query)
+                               :component this
+                               :ident {:column-id (:db/id (om/props this))}}]
             (dom/div #js {:className class-name
                           :style style
                           :draggable "true"
-                          :onDragStart (fn [e]
-                                         (h/drag-start
-                                          {:reconciler this
-                                           :root-query (get-root-query)
-                                           :component this
-                                           :ident {:column-id (:db/id (om/props this))}}))
-                          :onDragEnd (fn [e] (h/drag-end {:reconciler this :root-query (get-root-query :component this :ident {:column-id (:db/id (om/props this))})}))}
+                          :onDragStart (fn [e] (h/drag-start drag-data-map))
+                          :onDragEnd (fn [e] (h/drag-end drag-data-map))
+                          :onDragEnter (fn [e] (om/transact! this `[(local/update-order! {:target-column-id ~column-id})]))}
                      [(dom/div #js {:className "board-column-title"} (str (:column/name (om/props this)) ))
                       (column-tasks (:task/_column (om/props this)))
                       (dom/div #js {:className "board-column-new-item"}
@@ -41,29 +42,16 @@
 
 (def column-item (om/factory ColumnItem))
 
-#_(defui ColumnWrap
-  Object
-  (render [this]
-          (let [{:keys [moving field-idents] :as props} (om/props this)]
-            (println "ColumnWrap list " props)
-            (apply dom/div nil
-                   (map (fn [e]
-                          (let [mov-col-id (-> field-idents :column-id) ]
-                            (println "mov-col-id " mov-col-id " col-id " (:db/id e) )
-                            (if (= (:db/id e) mov-col-id)
-                              (column-item (assoc e :moving true))
-                              (column-item e)))) (:list props)))
-            )))
-
-#_(def column-wrap (om/factory ColumnWrap))
-
 (defn column-wrap [props]
-  (let [{:keys [moving field-idents]} props]
-    (vec (map (fn [e]
-                (let [mov-col-id (-> field-idents :column-id)]
-                  (if (and (= moving :drag-start) (= (:db/id e) mov-col-id)) 
-                    (column-item (assoc e :moving true))
-                    (column-item e)))) (:list props)))))
+  (let [{:keys [moving field-idents]} props
+        column-items (:list props)]
+    (vec
+     (map
+      (fn [item]
+        (let [mov-col-id (-> field-idents :column-id)]
+          (if (and (= moving :drag-start) (= (:db/id item) mov-col-id)) 
+            (column-item (assoc item :moving true))
+            (column-item item)))) (:list props)))))
 
 (defui ColumnList
   static om/Ident
@@ -118,6 +106,8 @@
                                      :modal-content m/new-task-form
                                      :extras (-> local-state :field-idents :column/new-task-modal)
                                      :title "Create new task"}) ))))))
+
+
 
 (defui BoardItem
   static om/Ident
