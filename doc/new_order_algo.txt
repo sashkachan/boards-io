@@ -1,0 +1,11 @@
+1
+2
+3
+4
+
+Element x dragged over element y, out of n total elements
+
+for each element from 0 .. (order of x - 1)
+  new element order is (current order - 1)
+
+set order of x to the (order of y - 1)
