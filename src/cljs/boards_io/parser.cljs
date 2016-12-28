@@ -69,7 +69,7 @@
   [{:keys [state]} _ {:keys [field field-state ident]}]
   {:keys [:app/local-state]
    :action (fn []
-             (swap! state assoc-in [:route/data field] {:state field-state} )
+             (swap! state assoc-in [:route/data field] {:state field-state})
              (swap! state assoc-in [:route/data :field-idents] {field ident}))})
 
 (defmethod mutate 'local/update-order!

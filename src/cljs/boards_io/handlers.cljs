@@ -46,15 +46,17 @@
 
 (defn new-column-save [{:keys [reconciler root-query save-btn-field extras] :as env}]
   ; todo: if nil? extras -> exception!
-  (let [board-id (:board-id extras)
+  (let [st @reconciler
+        board-id (:board-id extras)
         form (gdom/getElement "new-column-form")
-        title (forms/getValueByName form "column-title")]
+        title (forms/getValueByName form "column-title")
+        max-order (apply max (map #(:column/order %) (-> st :route/data :columns :column/list)))
+        order (if (nil? max-order) 1 (+ 1 max-order))]
     (om/transact! reconciler
                   `[(local/toggle-field! {:field ~save-btn-field :field-state :off})
-                    (save/new-column! {:title ~title :board-id ~board-id})
+                    (save/new-column! {:title ~title :board-id ~board-id :order ~order})
                     ~root-query
-                    (local/toggle-field! {:field ~save-btn-field :field-state :on})
-                    ])
+                    (local/toggle-field! {:field ~save-btn-field :field-state :on})])
     (modal-close env)))
 
 (defn drag-start [{:keys [reconciler root-query ident] :as env}]

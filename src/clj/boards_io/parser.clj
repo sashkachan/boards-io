@@ -61,13 +61,14 @@
   )
 
 (defmethod mutatef 'save/new-column!
-  [{:keys [conn] :as env} k {:keys [title board-id] :as params}]
+  [{:keys [conn] :as env} k {:keys [title board-id order] :as params}]
   (println " -- save/new-column! " env params)
   {:value {:keys '[:column/list]}
    :action (fn []
              @(d/transact conn `[{:db/id #db/id[:db.part/user]
                                   :column/name ~title
-                                  :column/board ~board-id}]))})
+                                  :column/board ~board-id
+                                  :column/order ~order}]))})
 
 (defmethod mutatef 'save/update-order!
   [{:keys [conn] :as env} k {:keys [columns] :as params}]
