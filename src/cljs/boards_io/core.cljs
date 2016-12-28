@@ -60,7 +60,7 @@
                       )
   
   (render [this]
-          (println "root data " (om/props this))
+          #_(println "root data " (om/props this))
           (let [{:keys [app/route route/data]} (om/props this)
                 pr (first route)]
             (if (not= nil pr)

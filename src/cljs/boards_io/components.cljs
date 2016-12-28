@@ -22,19 +22,23 @@
 (defui ColumnItem
   Object
   (render [this]
-          (let [class-name (str "board-column " (if (-> this om/props :moving) "moving" ""))
+          (let [is-moving (-> this om/props :moving)
+                class-name (str "board-column " (if is-moving "moving" ""))
                 style #js {:order (-> this om/props :column/order) }
                 column-id (:db/id (om/props this))
+                _ (println (:column/name (om/props this)) "order"  (:column/order (om/props this)) )
                 drag-data-map {:reconciler this
                                :root-query (get-root-query)
-                               :component this
-                               :ident {:column-id (:db/id (om/props this))}}]
-            (dom/div #js {:className class-name
-                          :style style
-                          :draggable "true"
-                          :onDragStart (fn [e] (h/drag-start drag-data-map))
-                          :onDragEnd (fn [e] (h/drag-end drag-data-map))
-                          :onDragEnter (fn [e] (om/transact! this `[(local/update-order! {:target-column-id ~column-id})]))}
+                               :ident {:column (om/props this)}}
+                js-map (cond-> {:className class-name
+                               :style style
+                               :draggable "true"
+                               :onDragStart (fn [e] (h/drag-start drag-data-map))
+                               :onDragEnd (fn [e] (h/drag-end drag-data-map))}
+                        (not is-moving)
+                        (assoc :onDragEnter
+                               (fn [e] (om/transact! this `[(local/update-order! {:target-column ~(om/props this)})]))))]
+            (dom/div (clj->js js-map) 
                      [(dom/div #js {:className "board-column-title"} (str (:column/name (om/props this)) ))
                       (column-tasks (:task/_column (om/props this)))
                       (dom/div #js {:className "board-column-new-item"}
@@ -48,10 +52,12 @@
     (vec
      (map
       (fn [item]
-        (let [mov-col-id (-> field-idents :column-id)]
-          (if (and (= moving :drag-start) (= (:db/id item) mov-col-id)) 
-            (column-item (assoc item :moving true))
-            (column-item item)))) (:list props)))))
+        (let [mov-col (-> field-idents :column)
+              mov-col-id (:db/id mov-col)
+              item (cond-> item
+                     (and (= moving :drag-start) (= (:db/id item) mov-col-id))
+                     (assoc :moving true))]
+          (column-item item))) (:list props)))))
 
 (defui ColumnList
   static om/Ident
@@ -87,7 +93,7 @@
                                                                     {:reconciler (om/get-reconciler this)
                                                                      :ref :column/new-column-modal
                                                                      :ident {:board-id board-id}} )} "New column...")))]
-            (println "ColumnList render props: " (om/props this))
+            #_(println "ColumnList render props: " (om/props this))
             (dom/div #js {:className "board-wrap"}
                      (cond-> cols
                        (= 1 (-> local-state :column/new-column-modal :state))

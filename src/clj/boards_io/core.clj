@@ -4,7 +4,6 @@
    [figwheel-sidecar.repl-api :as ra]
    [datomic.api :as d]
    [hiccup.core :as hc]))
-;;   [compassus.core :as cc]
 
 (defn -main []
   (s/system-start))

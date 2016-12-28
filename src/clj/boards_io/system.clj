@@ -10,8 +10,7 @@
   {:uri "datomic:mem://boards-io"
    :schema-tx dat-data/schema-tx
    :init-data dat-data/initial-data
-   :port 9091
-   })
+   :port 9091})
 
 (defrecord Database [uri schema-tx init-data]
   c/Lifecycle

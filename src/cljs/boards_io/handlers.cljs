@@ -57,7 +57,7 @@
                     ])
     (modal-close env)))
 
-(defn drag-start [{:keys [reconciler component root-query ident] :as env}]
+(defn drag-start [{:keys [reconciler root-query ident] :as env}]
   (om/transact! reconciler
                 `[(local/toggle-field! {:field :column/moving :field-state :drag-start :ident ~ident})]))
 

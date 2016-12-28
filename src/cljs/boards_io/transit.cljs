@@ -9,7 +9,7 @@
 (defn transit-post [url]
   (fn [{:keys [remote]} cb]
     (let [{:keys [query rewrite]} (om/process-roots remote)]
-      (println "send: " remote " meta " (meta (-> remote first :boards)) "query "query)
+      #_(println "send: " remote " meta " (meta (-> remote first :boards)) "query "query)
       (.send XhrIo url
              (fn [e]
                (this-as this
