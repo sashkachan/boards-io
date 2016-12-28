@@ -105,5 +105,5 @@
        )}))
 
 (defmethod mutate :default
-  [{:keys [state ref] :as env} _ _]
+  [_  _ _]
   {:remote true})

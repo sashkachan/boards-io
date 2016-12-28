@@ -27,7 +27,8 @@
                 style #js {:order (-> this om/props :column/order) }
                 column-id (:db/id (om/props this))
                 _ (println (:column/name (om/props this)) "order"  (:column/order (om/props this)) )
-                drag-data-map {:reconciler this
+                drag-data-map {:component this
+                               :reconciler (om/get-reconciler this)
                                :root-query (get-root-query)
                                :ident {:column (om/props this)}}
                 js-map (cond-> {:className class-name

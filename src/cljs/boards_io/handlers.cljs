@@ -61,6 +61,12 @@
   (om/transact! reconciler
                 `[(local/toggle-field! {:field :column/moving :field-state :drag-start :ident ~ident})]))
 
-(defn drag-end [{:keys [reconciler component root-query ident] :as env}]
-  (om/transact! reconciler
-                `[(local/toggle-field! {:field :column/moving :field-state :drag-end :ident ~ident})]))
+(defn drag-end [{:keys [reconciler component root-query ident columns] :as env}]
+  (let [st @reconciler
+        columns (-> st :route/data :columns :column/list vec)
+        new-cols (map (fn [column] (-> column
+                                      (dissoc :column/board)
+                                      (dissoc :task/_column))) columns)]
+    (om/transact! reconciler
+                  `[(save/update-order! {:columns ~new-cols})
+                    (local/toggle-field! {:field :column/moving :field-state :drag-end :ident ~ident})])))

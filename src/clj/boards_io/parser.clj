@@ -68,3 +68,10 @@
              @(d/transact conn `[{:db/id #db/id[:db.part/user]
                                   :column/name ~title
                                   :column/board ~board-id}]))})
+
+(defmethod mutatef 'save/update-order!
+  [{:keys [conn] :as env} k {:keys [columns] :as params}]
+  (println "save/update-order! " columns)
+    {:value {:keys '[:column/list]}
+     :action (fn []
+               @(d/transact conn columns))})
