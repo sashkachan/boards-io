@@ -26,7 +26,6 @@
                 class-name (str "board-column " (if is-moving "moving" ""))
                 style #js {:order (-> this om/props :column/order) }
                 column-id (:db/id (om/props this))
-                _ (println (:column/name (om/props this)) "order"  (:column/order (om/props this)) )
                 drag-data-map {:component this
                                :reconciler (om/get-reconciler this)
                                :root-query (get-root-query)
@@ -94,7 +93,6 @@
                                                                     {:reconciler (om/get-reconciler this)
                                                                      :ref :column/new-column-modal
                                                                      :ident {:board-id board-id}} )} "New column...")))]
-            #_(println "ColumnList render props: " (om/props this))
             (dom/div #js {:className "board-wrap"}
                      (cond-> cols
                        (= 1 (-> local-state :column/new-column-modal :state))
@@ -141,7 +139,6 @@
 
   Object
   (render [this]
-          (println "BoardList props: " (om/props this))
           (dom/div nil
                      [(dom/div nil (apply
                                     dom/div nil
@@ -151,7 +148,6 @@
                                (dom/a #js {:href "#"
                                            :onClick #(h/modal-open {:reconciler (om/get-reconciler this) :ref :board/new-board-modal} )} "New board..."))
                       (let [{:keys [app/local-state]} (om/props this)]
-                        (println "app/local-state is " local-state)
                         (if (= 1 (-> local-state :board/new-board-modal :state))
                           (modal {:root-query (get-root-query)
                                   :save-btn-state (-> local-state :board/save-btn-field :state)

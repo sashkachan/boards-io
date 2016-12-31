@@ -1,15 +1,20 @@
 (ns boards-io.handlers
   (:require [om.next :as om]
             [goog.dom :as gdom]
+            [goog.log :as glog]
+            [boards-io.logger :as l]
             [goog.dom.forms :as forms]))
 
 (defn change-route! [{:keys [reconciler matcher query-root this]} route]
-  (let [{:keys [handler route-params]} (matcher route)
-        ;;root (:root @(:state reconciler))
-        ]
-    (om/transact! this `[(local/route! {:route [~handler ~route-params]})
-                         ~query-root
-                         ])))
+  (let [{:keys [handler route-params]} (matcher route)]
+    (glog/info l/*logger* "change-route! pre")
+    (om/transact! reconciler `[
+                               (local/route! {:route [~handler ~route-params]})
+                               ~query-root
+                               
+                               ])
+    (glog/info l/*logger* "change-route! post"))
+  )
 
 (defn modal-open [{:keys [reconciler ref ident]}]
   (om/transact! reconciler
@@ -45,7 +50,7 @@
     (modal-close env)))
 
 (defn new-column-save [{:keys [reconciler root-query save-btn-field extras] :as env}]
-  ; todo: if nil? extras -> exception!
+                                        ; todo: if nil? extras -> exception!
   (let [st @reconciler
         board-id (:board-id extras)
         form (gdom/getElement "new-column-form")
@@ -72,3 +77,10 @@
     (om/transact! reconciler
                   `[(save/update-order! {:columns ~new-cols})
                     (local/toggle-field! {:field :column/moving :field-state :drag-end :ident ~ident})])))
+
+(defn start-loading [{:keys [reconciler root-query]}]
+  (let [st @reconciler]
+    (om/transact! reconciler `[(local/loading! {:loading-state true}) ~root-query])))
+
+(defn stop-loading [{:keys [reconciler root-query]}]
+  (om/transact! reconciler `[(local/loading! {:loading-state false})] ~root-query))

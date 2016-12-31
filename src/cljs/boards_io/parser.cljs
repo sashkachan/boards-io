@@ -2,6 +2,7 @@
   (:require 
    [om.next :as om]
    [goog.log :as glog]
+   [boards-io.logger :as l]
    [om.next.impl.parser :as parser]))
 
 (defmulti read om/dispatch)
@@ -33,7 +34,9 @@
       (and (not= nil target) (not= nil query))
       (merge (get-query-root env))
       (nil? target)
-      (assoc :value (merge (get-in st path) (parser env query))))))
+      (assoc :value (merge (get-in st path) (parser env query)))
+      (= k :app/local-state)
+      (dissoc :remote))))
 
 
 (defmethod read :route/data 
@@ -72,6 +75,7 @@
              (swap! state assoc-in [:route/data field] {:state field-state})
              (swap! state assoc-in [:route/data :field-idents] {field ident}))})
 
+; todo: include db-path (current route) in env
 (defmethod mutate 'local/update-order!
   [{:keys [state]} _ {:keys [target-column]}]
   (let [st @state
@@ -94,15 +98,24 @@
              new-columns (map (fn [column]
                                 (let [order (:column/order column)
                                       new-order (cond
-                                                  (= 0 order-k) order
+                                                  (= 0 order-k) order ;; not dragged over any other el
                                                   (= (:column/order column) dragged-column-order) ;; ->
-                                                  target-column-order
+                                                  target-column-order ;; 
                                                   (some #(= % order) affected-orders-range) (+ order order-k)
                                                   :else order)]
                                   (assoc column :column/order new-order))) columns)]
          (swap! state assoc-in [:route/data :columns :column/list] new-columns)
          (swap! state assoc-in [:route/data :field-idents :column/moving :column :column/order] target-column-order))
        )}))
+
+(defmethod mutate 'local/loading!
+  [{:keys [state]} _ {:keys [loading-state]}]
+  (glog/info l/*logger* (str "mutating local/loading! to " loading-state))
+  (let [st @state]
+    {:keys [:app/local-state]
+     
+     :action (fn []
+               (swap! state assoc :loading {:loading-state loading-state}))}))
 
 (defmethod mutate :default
   [_  _ _]

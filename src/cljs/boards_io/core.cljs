@@ -5,6 +5,8 @@
             [boards-io.transit :as transit]
             [om.dom :as dom]
             [om.util :as util]
+            [goog.log :as glog]
+            [boards-io.logger :as l]
             [cljs.core.async :as async]
             [bidi.bidi :as b] 
             [clojure.string :as string]
@@ -30,7 +32,6 @@
              {:keys [:route/data]
               :next (let [cur-rd (get s :route/data)
                           new-rd (merge cur-rd n)]
-                      #_(println "novelty: " n)
                       (assoc s :route/data new-rd))})
     :send (transit/transit-post "/api")}))
 
@@ -42,30 +43,25 @@
 (defui Root
   static om/IQuery
   (query [this]
-         `[:app/route
-           ~(c/get-root-query)
-           :app/events])
+         `[{:app/local-state [:loading]}
+           :app/route
+           ~(c/get-root-query)])
 
   Object
   (componentDidMount
    [this]
    (nav/wire-up (nav/new-history) #(h/change-route! (assoc env :this this) %)))
-
-  (componentDidUpdate [this _ _]                      
-                      ;; (println "Root component updated " (om/props this))
-                      ;; (println "component children " (om/children this))
-                      ;; add event handlers on body
-                      #_(events/listen js/document.body events/EventType.CLICK (fn [e] (println "click issued!") ))
-                      
-                      )
   
   (render [this]
-          #_(println "root data " (om/props this))
-          (let [{:keys [app/route route/data]} (om/props this)
-                pr (first route)]
-            (if (not= nil pr)
-              (let [component ((c/route->factory pr) (get data pr))]
-                component))
+          (let [{:keys [app/route route/data app/local-state]} (om/props this)
+                pr (first route)
+                _ (glog/info l/*logger* (str "local-state from root " local-state))
+                comp-data (if (not= nil pr)
+                            (let [component ((c/route->factory pr) (get data pr))]
+                              component))]
+            (if (= true (-> local-state :loading :loading-state))
+              (dom/div nil [(dom/div nil "Loading...") comp-data])
+              comp-data)
             )))
 
 (om/add-root! reconciler Root (js/document.getElementById "app"))
