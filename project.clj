@@ -20,11 +20,11 @@
                  [com.cognitect/transit-clj   "0.8.288"]
                  [ring "1.5.0"]
                  [org.omcljs/om "1.0.0-alpha47"]
-                 [figwheel-sidecar "0.5.4-6"]
+                 [figwheel-sidecar "0.5.9-SNAPSHOT"]
                  [com.cemerick/piggieback "0.2.1"]
                  [org.danielsz/system         "0.3.2-SNAPSHOT"]
                  [hiccup "1.0.5"]]
-  :plugins [[lein-cljsbuild "1.1.4"]]
+  :plugins [[lein-cljsbuild "1.1.5"]]
   :main boards-io.core
   :source-paths ["src/clj" "src/cljs" "src/dev"]
   :clean-targets ^{:protect false} ["resources/public/js" "target"])

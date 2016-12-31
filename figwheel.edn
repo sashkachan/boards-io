@@ -1,5 +1,5 @@
 {
- :http-server-root "public" ;; default
+ ;:http-server-root "public" ;; default
  :open-file-command "emacsclient"
  :reload-clj-files false
  :builds [{:id "dev", 
@@ -7,6 +7,7 @@
            :figwheel true
            :compiler {:main "boards-io.core"
                       :asset-path "/js",
+                      :recompile-dependents false
                       :output-to "resources/public/js/main.js",
                       :output-dir "resources/public/js/",
                       :source-map-timestamp true}}]}
