@@ -7,7 +7,7 @@
   :jvm-opts ^:replace ["-Xms512m" "-Xmx512m" "-server"]
   
   :dependencies [[org.clojure/clojure "1.8.0"]
-                 [org.clojure/clojurescript "1.9.89"]
+                 [org.clojure/clojurescript "1.9.293"]
                  [org.clojure/core.async "0.2.385"]
                  [cljsjs/react "15.2.1-1"]
                  [cljsjs/react-dom "15.2.1-1"]
@@ -19,7 +19,7 @@
                  [com.cognitect/transit-cljs  "0.8.239"]
                  [com.cognitect/transit-clj   "0.8.288"]
                  [ring "1.5.0"]
-                 [org.omcljs/om "1.0.0-alpha46"]
+                 [org.omcljs/om "1.0.0-alpha47"]
                  [figwheel-sidecar "0.5.4-6"]
                  [com.cemerick/piggieback "0.2.1"]
                  [org.danielsz/system         "0.3.2-SNAPSHOT"]
