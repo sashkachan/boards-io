@@ -132,9 +132,9 @@
   (render [this]         
           (let [{:keys [db/id board/name board/description]} (om/props this)]
             (dom/div 
-             #js {:key #(str "board-item-div-" id)}
-             (dom/a #js{:href (b/path-for router/router :columns :board-id id) :key #(str "board-item-div-a-" id)} name)
-             (dom/p #js {:key #(str "board-item-div-p-" id)} description)))))
+             #js {:key (str "board-item-div-" id)}
+             (dom/a #js{:href (b/path-for router/router :columns :board-id id) :key (str "board-item-div-a-" id)} name)
+             (dom/p #js {:key (str "board-item-div-p-" id)} description)))))
 
 (def board-item (om/factory BoardItem {:keyfn :db/id}))
 
