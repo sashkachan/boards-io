@@ -43,8 +43,7 @@
 (defui Root
   static om/IQuery
   (query [this]
-         `[{:app/local-state [:loading]}
-           :app/route
+         `[:app/route
            ~(c/get-root-query)])
 
   Object
@@ -55,13 +54,9 @@
   (render [this]
           (let [{:keys [app/route route/data app/local-state]} (om/props this)
                 pr (first route)
-                _ (glog/info l/*logger* (str "local-state from root " local-state))
                 comp-data (if (not= nil pr)
                             (let [component ((c/route->factory pr) (get data pr))]
                               component))]
-            (if (= true (-> local-state :loading :loading-state))
-              (dom/div nil [(dom/div nil "Loading...") comp-data])
-              comp-data)
-            )))
+            comp-data)))
 
 (om/add-root! reconciler Root (js/document.getElementById "app"))

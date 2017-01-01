@@ -7,16 +7,18 @@
 (def new-board-form
   (dom/form
    #js {:id "new-board-form"}
-   (dom/div #js {:className "form-group"}
+   (dom/div #js {:className "form-group" :key "new-board-form-div"}
             [(dom/input #js {:type "text"
                              :name "board-title"
                              :className "form-control"
-                             :placeholder "Title"}
+                             :placeholder "Title"
+                             :key "new-board-form-div-inp1"}
                         )
              (dom/input #js {:type "text"
                              :name "board-description"
                              :className "form-control"
-                             :placeholder "Description"}
+                             :placeholder "Description"
+                             :key "new-board-form-div-inp2"}
                         )])))
 
 
@@ -24,21 +26,23 @@
 (def new-task-form
   (dom/form
    #js {:id "new-task-form"}
-   (dom/div #js {:className "form-group"}
+   (dom/div #js {:className "form-group" :key "new-task-form-div"}
             [(dom/input #js {:type "text"
                              :name "task-title"
                              :className "form-control"
-                             :placeholder "Title"}
+                             :placeholder "Title"
+                             :key "new-task-form-div-inp1"}
                         )])))
 
 (def new-column-form
   (dom/form
    #js {:id "new-column-form"}
-   (dom/div #js {:className "form-group"}
+   (dom/div #js {:className "form-group" :key "new-column-form-div"}
             [(dom/input #js {:type "text"
                              :name "column-title"
                              :className "form-control"
-                             :placeholder "Title"}
+                             :placeholder "Title"
+                             :key "new-column-form-div-inp1"}
                         )])))
 
 (defui Modal
@@ -55,11 +59,13 @@
                              #js {:type "button"
                                   :className cl
                                   :aria-label ar
+                                  :key "mod-btn1"
                                   :onClick #(h/modal-close h-env)}
-                             (dom/span #js {:aria-hidden "true"} b)))
+                             (dom/span #js {:aria-hidden "true" :key "mod-spn-1"} b)))
          save-stngs (-> (cond-> {:type "button"
                                  :className "btn btn-primary"
-                                 :onClick #(submit-fn h-env)}
+                                 :onClick #(submit-fn h-env)
+                                 :key "mod-btn2"}
                           (= :off save-btn-state) (assoc :disabled "disabled"))
                         clj->js)
          save (dom/button save-stngs  "Save")]
@@ -67,14 +73,14 @@
               (dom/div #js {:className "modal fade in"
                             :style #js {:display "visible"} }
                        (dom/div
-                        #js {:className "modal-dialog" :role "document" :id "new-board-save"}
-                        (dom/div #js {:className "modal-content"}
-                                 [(dom/div #js {:className "modal-header"}
+                        #js {:className "modal-dialog" :role "document" :id "new-board-save" :key "new-board-save"}
+                        (dom/div #js {:className "modal-content" :key "new-board-save-div1"}
+                                 [(dom/div #js {:className "modal-header" :key "new-board-save-div11" }
                                            [(close "×" "close" "Close")
-                                            (dom/h4 #js {:className "modal-title"} title)])
-                                  (dom/div #js {:className "modal-body"}
+                                            (dom/h4 #js {:className "modal-title" :key "new-board-save-h41"} title)])
+                                  (dom/div #js {:className "modal-body" :key "new-board-save-div12"}
                                            modal-content)
-                                  (dom/div #js {:className "modal-footer"}
+                                  (dom/div #js {:className "modal-footer" :key "new-board-save-div13"}
                                            [(close "Close" "btn btn-default" "")
                                             save])]))))
 

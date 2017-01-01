@@ -83,7 +83,7 @@
         target-column-order (:column/order target-column)
         dragged-column (-> st :route/data :field-idents :column/moving :column)
         dragged-column-order (:column/order dragged-column)
-        columns (-> st :route/data :columns :column/list)]
+        columns (-> st :route/data route :column/list)]
     {:keys [:column/list]
      :action
      (fn []
@@ -104,7 +104,7 @@
                                                   (some #(= % order) affected-orders-range) (+ order order-k)
                                                   :else order)]
                                   (assoc column :column/order new-order))) columns)]
-         (swap! state assoc-in [:route/data :columns :column/list] new-columns)
+         (swap! state assoc-in [:route/data route :column/list] new-columns)
          (swap! state assoc-in [:route/data :field-idents :column/moving :column :column/order] target-column-order))
        )}))
 
@@ -113,7 +113,6 @@
   (glog/info l/*logger* (str "mutating local/loading! to " loading-state))
   (let [st @state]
     {:keys [:app/local-state]
-     
      :action (fn []
                (swap! state assoc :loading {:loading-state loading-state}))}))
 
