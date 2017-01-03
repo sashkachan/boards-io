@@ -15,8 +15,7 @@
             [boards-io.router :as router]
             [boards-io.navigation :as nav]
             [boards-io.components :as c]
-            [boards-io.handlers :as h]
-            )
+            [boards-io.handlers :as h])
   (:import goog.History ))
 
 
@@ -28,11 +27,15 @@
   (om/reconciler
    {:state state
     :parser (om/parser {:read parser/read :mutate parser/mutate})
-    :merge (fn [r s n q]
+    :normalize true
+    :id-key :db/id
+    :merge  (fn [r s n q]
              {:keys [:route/data]
-              :next (let [cur-rd (get s :route/data)
-                          new-rd (merge cur-rd n)]
-                      (assoc s :route/data new-rd))})
+              :next (let [route (-> s :app/route first)
+                          cmpn (get c/route->component route) 
+                          cur-rd (get s :route/data)
+                          new-rd (merge cur-rd (om/tree->db cmpn (get n route) true))]
+                      (assoc-in s [:route/data route] new-rd))})
     :send (transit/transit-post "/api")}))
 
 (def env {:reconciler reconciler
@@ -50,7 +53,7 @@
   (componentDidMount
    [this]
    (nav/wire-up (nav/new-history) #(h/change-route! (assoc env :this this) %)))
-  
+
   (render [this]
           (let [{:keys [app/route route/data app/local-state]} (om/props this)
                 pr (first route)

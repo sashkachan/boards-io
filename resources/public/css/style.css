@@ -47,12 +47,18 @@
     font-style: italic;
 }
 
+.board-column-task-item {
+    margin:2px 0;
+    padding:2px 0;
+}
+
+.board-column-title {
+    margin-bottom:3px;
+    border-bottom:1px solid #e2e2e2;
+}
+
 .moving {
     border: 1px dashed black;
     border-radius: 5px;
     opacity: 0.5;
-}
-
-.drop-area {
-    width: 30px;
 }
