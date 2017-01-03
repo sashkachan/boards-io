@@ -51,8 +51,6 @@
       (merge (get-query-root env'))
       (nil? target)
       (assoc :value (merge (get-in st path) (parser env' query)))
-      #_(and (nil? target) (contains? #{:board/list :column/list} k))
-      #_(assoc :value (merge (get-in st path) (denorm-data-val {:key k :db-path path :state st :query query})(parser env' query)))
       (= k :app/local-state)
       (dissoc :remote))))
 
@@ -69,7 +67,6 @@
     (if (nil? route)
       {:value nil}
       (let [parsed (parser env' [{route query'}] target)]
-        #_(println "parsed: " parsed)
         (cond-> {}
           (not= nil target) (assoc target (parser/expr->ast (first parsed)))
           (= nil target ) (assoc :value parsed))))))
@@ -89,10 +86,12 @@
 (defmethod mutate 'local/toggle-field!
   [{:keys [state]} _ {:keys [field field-state ident]}]
   (println "ident toggle-field " ident @state)
-  {:keys [:route/data :column/moving]
-   :action (fn []
-             (swap! state assoc-in [:route/data field] {:state field-state})
-             (swap! state assoc-in [:route/data :field-idents] {field ident}))})
+  (let [state' @state
+        route (first (:app/route state'))]
+    {:keys [:route/data :column/moving]
+     :action (fn []
+               (swap! state assoc-in [:route/data route :app/local-state field] {:state field-state})
+               (swap! state assoc-in [:route/data route :app/local-state :field-idents] {field ident}))}))
 
 ; todo: include db-path (current route) in env
 (defmethod mutate 'local/update-order!

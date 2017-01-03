@@ -34,10 +34,11 @@
 (defui BoardList
   static om/IQuery
   (query [this]
-         `[{:board/list ~(om/get-query BoardItem)} {:app/local-state [:board/new-board-modal]} ])
+         `[{:board/list ~(om/get-query BoardItem)} {:app/local-state [:board/new-board-modal]}])
 
   Object
   (render [this]
+          (println "board/list props "(om/props this))
           (dom/div #js {:key "board-list"}
                      [(dom/div #js {:key "board-list-div1"} (apply
                                        dom/div #js {:key "board-list-div1"}
