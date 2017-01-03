@@ -74,6 +74,9 @@
                   `[(save/update-order! {:columns ~new-cols})
                     (local/toggle-field! {:field :column/moving :field-state :drag-end :ident ~ident})])))
 
+(defn update-order [{:keys [reconciler component props]}]
+  (om/transact! component `[(local/update-order! {:target-column [:column/by-id ~(:db/id props)]})]))
+
 (defn start-loading [{:keys [reconciler query-root]}]
   (let [st @reconciler]
     (om/transact! reconciler `[(local/loading! {:loading-state true}) ~query-root])))
