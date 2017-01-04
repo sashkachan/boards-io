@@ -30,10 +30,10 @@
     :normalize true
     :id-key :db/id
     :merge  (fn [r s n q]
-             {:keys [:route/data]
+             {:keys [:route/data] ; todo: dynamic keys 
               :next (let [route (-> s :app/route first)
                           cmpn (get c/route->component route) 
-                          cur-rd (get s :route/data)
+                          cur-rd (get-in s [:route/data route])
                           new-rd (merge cur-rd (om/tree->db cmpn (get n route) true))]
                       (assoc-in s [:route/data route] new-rd))})
     :send (transit/transit-post "/api")}))

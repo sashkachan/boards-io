@@ -82,7 +82,7 @@
   
   static om/Ident
   (ident [_ item]
-         (println "item " (->  item :db/id))
+         #_(println "item " (->  item :db/id))
          [:column/by-id (-> item :db/id)])
   Object
   (render [this]

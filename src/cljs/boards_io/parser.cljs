@@ -44,16 +44,15 @@
 (defmethod read :default
   [{:keys [target state query parser db-path] :as env} k _]
   (let [st @state
-        path (conj db-path k)
-        env' (assoc env :db-path path )]
+        db-path' (conj db-path k)
+        env' (assoc env :db-path db-path' )]
     (cond-> {}
       (and (not= nil target) (not= nil query))
       (merge (get-query-root env'))
       (nil? target)
-      (assoc :value (merge (get-in st path) (parser env' query)))
+      (assoc :value (merge (get-in st db-path') (parser env' query)))
       (= k :app/local-state)
       (dissoc :remote))))
-
 
 (defmethod read :route/data 
   [{:keys [target parser state query ast] :as env} k params]
