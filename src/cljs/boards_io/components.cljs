@@ -92,8 +92,7 @@
                 column-id (:db/id (om/props this))
                 drag-data-map {:component this
                                :reconciler (om/get-reconciler this)
-                               :root-query (get-root-query)
-                               :ident {:column (om/props this) }}
+                               :ident {:column-id column-id}}
                 js-map (cond-> {:className class-name
                                 :key (str "item-" column-id)
                                 :style style
@@ -103,7 +102,7 @@
                         (not is-moving)
                         (assoc :onDragEnter
                                 (fn [e]
-                                   (h/update-order {:reconciler (om/get-reconciler this) :component this :props (om/props this)}))
+                                   (h/update-order {:reconciler (om/get-reconciler this) :component this :target-column-id column-id}))
        ))]
             (dom/div (clj->js js-map) 
                      [(dom/div #js {:className "board-column-title" :key (str "item-title-" column-id)} (str (:column/name (om/props this)) ))
@@ -135,9 +134,9 @@
                       (into []
                             (map
                              (fn [item]
-                               (let [mov-col (-> local-state :field-idents :column/moving :column)
-                                     mov-col-id (:db/id mov-col)
-                                     moving (-> local-state :column/moving :state )
+                               (let [mov-col-id (-> local-state :field-idents :column/moving :column-id)
+                                     ;mov-col-id (:db/id mov-col)
+                                     moving (-> local-state :column/moving :state)
                                      item (cond-> item
                                             (and (= moving :drag-start) (= (:db/id item) mov-col-id))
                                             (assoc :moving true))]
@@ -183,4 +182,3 @@
 (defn get-root-query []
   {:route/data (zipmap (keys route->component)
                        (map om/get-query (vals route->component)))})
-

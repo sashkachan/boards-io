@@ -49,9 +49,8 @@
   Object
   (render
    [this]
-   (let [{:keys [save-btn-state root-query ref modal-content submit-fn title extras] :as props} (om/props this)
+   (let [{:keys [save-btn-state ref modal-content submit-fn title extras] :as props} (om/props this)
          h-env {:reconciler (om/get-reconciler this)
-                :root-query root-query
                 :save-btn-field :board/save-btn-field
                 :ref ref
                 :extras extras}

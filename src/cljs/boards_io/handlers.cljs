@@ -51,7 +51,7 @@
         board-id (:board-id extras)
         form (gdom/getElement "new-column-form")
         title (forms/getValueByName form "column-title")
-        max-order (apply max (map #(:column/order %) (-> st :route/data :columns :column/list)))
+        max-order (apply max (map (fn [[_ column]] (:column/order column)) (get-in st [:route/data :columns :column/by-id])))
         order (if (nil? max-order) 1 (+ 1 max-order))]
     (om/transact! reconciler
                   (into [`(local/toggle-field! {:field ~save-btn-field :field-state :off})
@@ -60,26 +60,27 @@
                         (om/transform-reads reconciler [:route/data])))
     (modal-close env)))
 
-(defn drag-start [{:keys [reconciler root-query ident] :as env}]
+(defn drag-start [{:keys [reconciler ident] :as env}]
   (om/transact! reconciler
                 `[(local/toggle-field! {:field :column/moving :field-state :drag-start :ident ~ident})]))
 
-(defn drag-end [{:keys [reconciler component root-query ident columns] :as env}]
+(defn drag-end [{:keys [reconciler component ident columns] :as env}]
   (let [st @reconciler
-        columns (-> st :route/data :columns :column/list vec)
-        new-cols (map (fn [column] (-> column
-                                      (dissoc :column/board)
-                                      (dissoc :task/_column))) columns)]
+        columns (-> st :route/data :columns :column/by-id)
+        new-cols (into [] (map (fn [[_ column]] {:db/id (:db/id column)
+                                                :column/order (:column/order column)}) columns))]
     (om/transact! reconciler
-                  `[(save/update-order! {:columns ~new-cols})
-                    (local/toggle-field! {:field :column/moving :field-state :drag-end :ident ~ident})])))
+                  (into `[(save/update-order! {:columns ~new-cols})
+                          (local/toggle-field! {:field :column/moving :field-state :drag-end :ident ~ident})]
+                        (om/transform-reads reconciler [:route/data])))))
 
-(defn update-order [{:keys [reconciler component props]}]
-  (om/transact! component `[(local/update-order! {:target-column [:column/by-id ~(:db/id props)]})]))
+(defn update-order [{:keys [reconciler component target-column-id]}]
+  (om/transact! reconciler `[(local/update-order! {:target-column-id ~target-column-id})]))
 
-(defn start-loading [{:keys [reconciler query-root]}]
+(defn start-loading [{:keys [reconciler]}]
   (let [st @reconciler]
-    (om/transact! reconciler `[(local/loading! {:loading-state true}) ~query-root])))
+    (om/transact! reconciler (into `[(local/loading! {:loading-state true})]
+                                   (om/transform-reads reconciler [:route/data])))))
 
 (defn stop-loading [{:keys [reconciler]}]
   #_(println "send r " @reconciler)

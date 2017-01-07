@@ -41,16 +41,25 @@
                             res (parser env q target)]
                         res))})
 
+(defn read-local-value [{:keys [target state query parser db-path] :as env}]
+  (let [st @state
+        parsed (parser env query)
+        current (get-in st db-path)]
+    (cond-> current
+      (map? current) (merge parsed))))
+
 (defmethod read :default
   [{:keys [target state query parser db-path] :as env} k _]
   (let [st @state
         db-path' (conj db-path k)
-        env' (assoc env :db-path db-path' )]
+        env' (assoc env :db-path db-path' )
+        ;_ (println (get-in st db-path'))
+        ]
     (cond-> {}
       (and (not= nil target) (not= nil query))
       (merge (get-query-root env'))
       (nil? target)
-      (assoc :value (merge (get-in st db-path') (parser env' query)))
+      (assoc :value (read-local-value env'))
       (= k :app/local-state)
       (dissoc :remote))))
 
@@ -65,7 +74,7 @@
         query' (get query route)]
     (if (nil? route)
       {:value nil}
-      (let [parsed (parser env' [{route query'}] target)]
+      (let [parsed (parser env' [{route (or query' query)}] target)]
         (cond-> {}
           (not= nil target) (assoc target (parser/expr->ast (first parsed)))
           (= nil target ) (assoc :value parsed))))))
@@ -84,7 +93,6 @@
 
 (defmethod mutate 'local/toggle-field!
   [{:keys [state]} _ {:keys [field field-state ident]}]
-  (println "ident toggle-field " ident @state)
   (let [state' @state
         route (first (:app/route state'))]
     {:keys [:route/data :column/moving]
@@ -94,16 +102,15 @@
 
 ; todo: include db-path (current route) in env
 (defmethod mutate 'local/update-order!
-  [{:keys [state]} _ {:keys [target-column]}]
+  [{:keys [state ref]} _ {:keys [target-column-id]}]
   (let [st @state
-        _ (println "state from update-order! "  )
         route (-> (get st :app/route) first)
-        target-column-order (:column/order target-column)
-        column-dragging? (= :drag-start (-> st :route/data :column/moving :state))
-        dragged-column (-> st :route/data :field-idents :column/moving :column)
-        dragged-column-order (:column/order dragged-column)
-        columns (-> st :route/data route :column/list)]
-    (cond-> {:keys [:column/list]}
+        target-column-order (get-in st [:route/data route :column/by-id target-column-id :column/order])
+        column-dragging? (= :drag-start (get-in st [:route/data route :app/local-state :column/moving :state]))
+        dragged-column-id (get-in st [:route/data route :app/local-state :field-idents :column/moving :column-id]) ; ewwwww! replace it with read
+        dragged-column-order (get-in st [:route/data route :column/by-id dragged-column-id :column/order])
+        columns (get-in st [:route/data route :column/by-id])]
+    (cond-> {:keys [:route/data]}
       column-dragging?
       (assoc :action
              (fn []
@@ -115,17 +122,19 @@
                      affected-orders-range (if (> order-k 0)
                                              (range target-column-order dragged-column-order)
                                              (range (+ 1 dragged-column-order) (+ 1 target-column-order)))
-                     new-columns (map (fn [column]
-                                        (let [order (:column/order column)
-                                              new-order (cond
-                                                          (= 0 order-k) order ;; not dragged over any other el
-                                                          (= (:column/order column) dragged-column-order) ;; ->
-                                                          target-column-order ;; 
-                                                          (some #(= % order) affected-orders-range) (+ order order-k)
-                                                          :else order)]
-                                          (assoc column :column/order new-order))) columns)]
-                 (swap! state assoc-in [:route/data route :column/list] new-columns)
-                 (swap! state assoc-in [:route/data :field-idents :column/moving :column :column/order] target-column-order))
+                     new-columns (into {}
+                                       (map (fn [[column-id col-map]]
+                                              (let [order (:column/order col-map) 
+                                                    new-order (cond
+                                                                (= 0 order-k) order ;; not dragged over any other el
+                                                                (= order dragged-column-order) ;; ->
+                                                                target-column-order ;; 
+                                                                (some #(= % order) affected-orders-range) (+ order order-k)
+                                                                :else order)]
+                                                {column-id (assoc col-map :column/order new-order)})) columns))
+                     ]
+                 (swap! state assoc-in [:route/data route :column/by-id] new-columns)
+                 #_(swap! state assoc-in [:route/data :field-idents :column/moving :column :column/order] target-column-order))
                )))))
 
 (defmethod mutate 'local/loading!
