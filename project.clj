@@ -13,7 +13,7 @@
                  [cljsjs/react-dom "15.2.1-1"]
                  [org.clojure/tools.namespace "0.2.11"]
                  [org.clojure/tools.logging   "0.3.1"]
-                 [com.datomic/datomic-free    "0.9.5394"]
+                 [com.datomic/datomic-free    "0.9.5394" :exclusions [com.google.guava/guava org.slf4j/log4j-over-slf4j org.slf4j/slf4j-nop]]
                  [com.stuartsierra/component  "0.3.1"]
                  [bidi "2.0.11"]
                  [com.cognitect/transit-cljs  "0.8.239"]
@@ -24,8 +24,19 @@
                  [com.cemerick/piggieback "0.2.1"]
                  [org.danielsz/system         "0.3.2-SNAPSHOT"]
                  [hiccup "1.0.5"]]
-  :plugins [[lein-cljsbuild "1.1.5"]]
+  :plugins [[lein-cljsbuild "1.1.5"]
+            [lein-exec "0.3.6"]]
   :main boards-io.core
+  :cljsbuild {:builds [{:id "test"
+                        :source-paths ["src/clj" "src/cljs" "src/test"]
+                        :main boards-io.test
+                        :compiler {:output-to "scripts/tests.simple.js"
+                                   :output-dir "scripts/out"
+                                   :source-map "scripts/tests.simple.js.map"
+                                   :output-wrapper false
+                                   :optimizations :simple
+                                   }}]}
   :source-paths ["src/clj" "src/cljs" "src/dev"]
-  :clean-targets ^{:protect false} ["resources/public/js" "target"])
+  :hooks [leiningen.cljsbuild]
+  :clean-targets ^{:protect false} ["resources/public/js" "target"]) 
 

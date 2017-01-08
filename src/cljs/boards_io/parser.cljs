@@ -102,7 +102,7 @@
 
 ; todo: include db-path (current route) in env
 (defmethod mutate 'local/update-order!
-  [{:keys [state ref]} _ {:keys [target-column-id]}]
+  [{:keys [state]} _ {:keys [target-column-id]}]
   (let [st @state
         route (-> (get st :app/route) first)
         target-column-order (get-in st [:route/data route :column/by-id target-column-id :column/order])
@@ -133,8 +133,7 @@
                                                                 :else order)]
                                                 {column-id (assoc col-map :column/order new-order)})) columns))
                      ]
-                 (swap! state assoc-in [:route/data route :column/by-id] new-columns)
-                 #_(swap! state assoc-in [:route/data :field-idents :column/moving :column :column/order] target-column-order))
+                 (swap! state assoc-in [:route/data route :column/by-id] new-columns))
                )))))
 
 (defmethod mutate 'local/loading!

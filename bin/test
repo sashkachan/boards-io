@@ -1,0 +1,8 @@
+#!/bin/bash
+
+set -e
+
+bin/classpath
+java -cp `cat classpath.txt` clojure.main scripts/test.clj
+node target/test/test.js
+

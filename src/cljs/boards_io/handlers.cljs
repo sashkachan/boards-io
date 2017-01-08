@@ -66,9 +66,9 @@
 
 (defn drag-end [{:keys [reconciler component ident columns] :as env}]
   (let [st @reconciler
-        columns (-> st :route/data :columns :column/by-id)
-        new-cols (into [] (map (fn [[_ column]] {:db/id (:db/id column)
-                                                :column/order (:column/order column)}) columns))]
+        columns (get-in st [:route/data :columns :column/by-id])
+        new-cols (into [] (map (fn [[cid column]] {:db/id cid
+                                                  :column/order (:column/order column)}) columns))]
     (om/transact! reconciler
                   (into `[(save/update-order! {:columns ~new-cols})
                           (local/toggle-field! {:field :column/moving :field-state :drag-end :ident ~ident})]
