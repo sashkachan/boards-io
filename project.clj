@@ -9,11 +9,9 @@
   :dependencies [[org.clojure/clojure "1.8.0"]
                  [org.clojure/clojurescript "1.9.293"]
                  [org.clojure/core.async "0.2.385"]
-                 [cljsjs/react "15.2.1-1"]
-                 [cljsjs/react-dom "15.2.1-1"]
                  [org.clojure/tools.namespace "0.2.11"]
                  [org.clojure/tools.logging   "0.3.1"]
-                 [com.datomic/datomic-free    "0.9.5394" :exclusions [com.google.guava/guava org.slf4j/log4j-over-slf4j org.slf4j/slf4j-nop]]
+                 [com.datomic/datomic-free    "0.9.5394" :exclusions [com.google.guava/guava #_org.slf4j/log4j-over-slf4j #_ org.slf4j/slf4j-nop]]
                  [com.stuartsierra/component  "0.3.1"]
                  [bidi "2.0.11"]
                  [com.cognitect/transit-cljs  "0.8.239"]
@@ -29,14 +27,13 @@
   :main boards-io.core
   :cljsbuild {:builds [{:id "test"
                         :source-paths ["src/clj" "src/cljs" "src/test"]
-                        :main boards-io.test
-                        :compiler {:output-to "scripts/tests.simple.js"
-                                   :output-dir "scripts/out"
-                                   :source-map "scripts/tests.simple.js.map"
+                        :compiler {
+                                   :output-to "script/tests.simple.js"
+                                   :output-dir "script/out"
+                                   :source-map "script/tests.simple.js.map"
                                    :output-wrapper false
-                                   :optimizations :simple
-                                   }}]}
+                                   :optimizations :simple}}]}
   :source-paths ["src/clj" "src/cljs" "src/dev"]
   :hooks [leiningen.cljsbuild]
-  :clean-targets ^{:protect false} ["resources/public/js" "target"]) 
+  :clean-targets ^{:protect false} ["resources/public/js" "target"])
 

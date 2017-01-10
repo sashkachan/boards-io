@@ -1,0 +1,13 @@
+{ "name": "boards-io",
+  "version": "1.0.0",
+  "description": "Do we need it yet?",
+  "repository" : {
+      "type" : "git",
+      "url" : "https://github.com/alex-glv/boards-io.git"
+  },
+  "license" : "MIT",
+  "devDependencies": {
+      "react": "15.4.0",
+      "react-dom": "15.4.0"
+  }
+}
