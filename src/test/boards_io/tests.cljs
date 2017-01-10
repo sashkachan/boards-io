@@ -3,6 +3,7 @@
             [clojure.test :refer [deftest is are testing run-tests]]
             [boards-io.parser :as p]
             [boards-io.components :as c]
+            [boards-io.handlers :as h]
             [om.next :as om :refer-macros [defui ui]]
             ))
 
@@ -56,14 +57,17 @@
     ;:send (transit/transit-post "/api")
     }))
 
-(deftest test-routes
+(deftest test-reordering
   (let [state (atom test-state)
         reconc (get-reconciler state)
-        _ (om/transact! reconc '[(local/toggle-field! {:field :column/moving :field-state :drag-end :ident {:column-id 17592186045420}})])
-        _ (om/transact! reconc '[(local/update-order! {:target-column-id 17592186045421})])
+        _ (om/transact! reconc '[(local/toggle-field! {:field :column/moving :field-state :drag-start :ident {:column-id 17592186045420}})])
+        _ (h/update-order {:reconciler reconc :target-column-id 17592186045421})
         get-idents #(get-in @reconc [:route/data :columns :app/local-state :field-idents])
         ]
-    (is (= (get-idents)
-         {:column/moving {:column-id 17592186045420}}
-         ))
-    (is (= true (map? (get-idents))))))
+    (testing "moving column is set to state"
+      (is (= (get-idents)
+             {:column/moving {:column-id 17592186045420}})))
+    (testing "idents returns map" (is (= true (map? (get-idents)))))
+    (testing "order swapped correctly"
+      (is (= 3 (get-in @reconc [:route/data :columns :column/by-id 17592186045420 :column/order])))
+      (is (= 2 (get-in @reconc [:route/data :columns :column/by-id 17592186045421 :column/order]))))))
