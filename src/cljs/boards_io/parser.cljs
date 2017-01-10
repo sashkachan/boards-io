@@ -138,7 +138,7 @@
 
 (defmethod mutate 'local/loading!
   [{:keys [state]} _ {:keys [loading-state]}]
-  (glog/info l/*logger* (str "mutating local/loading! to " loading-state))
+  (glog/info l/*logger* (str "mutating local/loading! " loading-state))
   (let [st @state]
     {:keys [:app/local-state]
      :action (fn []
@@ -147,3 +147,12 @@
 (defmethod mutate :default
   [_  _ _]
   {:remote true})
+
+(def merger (fn [route->component]
+              (fn [r s n q]
+                {:keys [:route/data]    ; todo: dynamic keys 
+                 :next (let [route (-> s :app/route first)
+                             cmpn (get route->component route) 
+                             cur-rd (get-in s [:route/data route])
+                             new-rd (merge cur-rd (om/tree->db cmpn (get n route) true))]
+                         (assoc-in s [:route/data route] new-rd))})))

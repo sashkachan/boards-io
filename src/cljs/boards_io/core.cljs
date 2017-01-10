@@ -15,7 +15,8 @@
             [boards-io.router :as router]
             [boards-io.navigation :as nav]
             [boards-io.components :as c]
-            [boards-io.handlers :as h])
+            [boards-io.handlers :as h]
+            [om.next.protocols :as p])
   (:import goog.History ))
 
 
@@ -29,13 +30,7 @@
     :parser (om/parser {:read parser/read :mutate parser/mutate})
     :normalize true
     :id-key :db/id
-    :merge  (fn [r s n q]
-             {:keys [:route/data] ; todo: dynamic keys 
-              :next (let [route (-> s :app/route first)
-                          cmpn (get c/route->component route) 
-                          cur-rd (get-in s [:route/data route])
-                          new-rd (merge cur-rd (om/tree->db cmpn (get n route) true))]
-                      (assoc-in s [:route/data route] new-rd))})
+    :merge  (parser/merger c/route->component)
     :send (transit/transit-post "/api")}))
 
 (def env {:reconciler reconciler

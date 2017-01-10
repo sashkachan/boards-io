@@ -1,0 +1,2 @@
+{:externs ["externs.js"]}
+
