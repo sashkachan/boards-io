@@ -16,7 +16,10 @@
             [boards-io.navigation :as nav]
             [boards-io.components :as c]
             [boards-io.handlers :as h]
-            [om.next.protocols :as p])
+            [om.next.protocols :as p]
+            [pushy.core :as pushy]
+            [bidi.bidi :as bidi]
+            [compassus.core :as compassus])
   (:import goog.History ))
 
 
@@ -24,37 +27,44 @@
 
 (defonce state (atom {:app/route []}))
 
-(def reconciler
-  (om/reconciler
-   {:state state
-    :parser (om/parser {:read parser/read :mutate parser/mutate})
-    :normalize true
-    :id-key :db/id
-    :merge  (parser/merger c/route->component)
-    :send (transit/transit-post "/api")}))
+(declare app)
 
-(def env {:reconciler reconciler
+(defn update-route!
+  [{:keys [handler] :as route}]
+  (let [current-route (compassus/current-route app)]
+    (when (not= handler current-route)
+      (compassus/set-route! app handler))))
+
+(def history
+  (pushy/pushy update-route!
+    (partial bidi/match-route router/router)))
+
+(println "routes: " (zipmap (keys c/route->component)
+                            (vals c/route->component)))
+
+(def app
+  (compassus/application
+    ;; :index is the initial route of the application
+   {:routes c/route->component
+    :index-route :boards
+    
+    :mixins [(compassus/did-mount #(pushy/start! history))
+             (compassus/will-unmount #(pushy/stop! history))]
+    :normalize true
+    :reconciler (om/reconciler
+                 {:state state
+                  :parser (compassus/parser {:read parser/read :mutate parser/mutate})
+                  :normalize true
+                  :id-key :db/id
+                                        ;:merge  (parser/merger c/route->component)
+                  :send (transit/transit-post "/api")})}
+    ))
+
+#_(def env {:reconciler reconciler
           :matcher (partial b/match-route router/router)
           :query-root (c/get-root-query)
           })
+(compassus/mount! app (js/document.getElementById "app"))
 
-(defui Root
-  static om/IQuery
-  (query [this]
-         `[:app/route
-           ~(c/get-root-query)])
+;(om/add-root! reconciler Root (js/document.getElementById "app"))
 
-  Object
-  (componentDidMount
-   [this]
-   (nav/wire-up (nav/new-history) #(h/change-route! (assoc env :this this) %)))
-
-  (render [this]
-          (let [{:keys [app/route route/data app/local-state]} (om/props this)
-                pr (first route)
-                comp-data (if (not= nil pr)
-                            (let [component ((c/route->factory pr) (get data pr))]
-                              component))]
-            comp-data)))
-
-(om/add-root! reconciler Root (js/document.getElementById "app"))

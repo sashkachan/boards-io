@@ -169,10 +169,18 @@
 
 
 
+(defui Boards
+  static om/IQuery
+  (query [this]
+         [ (om/get-query BoardList)])
+  Object
+  
+  (render [this]
+          ((om/factory BoardList) (:board/list (om/props this)))))
 
 
 (def route->component
-  {:boards BoardList
+  {:boards Boards
    :columns ColumnList})
 
 (def route->factory
