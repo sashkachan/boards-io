@@ -71,7 +71,8 @@
         env' (-> env
                  (assoc :route [route route-params])
                  (assoc :db-path [:route/data])) 
-        query' (get query route)]
+        query' (if-not (empty? query)
+                 (get (first query) route))]
     (if (nil? route)
       {:value nil}
       (let [parsed (parser env' [{route (or query' query)}] target)]

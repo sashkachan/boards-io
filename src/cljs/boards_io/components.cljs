@@ -180,5 +180,5 @@
           (map (fn [c] (om/factory c {:keyfn #(str (-> % keys first))})) (vals route->component))))
 
 (defn get-root-query []
-  {:route/data (zipmap (keys route->component)
-                       (map om/get-query (vals route->component)))})
+  {:route/data [(zipmap (keys route->component)
+                       (map om/get-query (vals route->component)))]})
