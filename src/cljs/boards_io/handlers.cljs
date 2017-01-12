@@ -60,9 +60,9 @@
                         (om/transform-reads reconciler [:route/data])))
     (modal-close env)))
 
-(defn drag-start [{:keys [reconciler ident] :as env}]
+(defn drag-start [{:keys [reconciler entity ident ] :as env}]
   (om/transact! reconciler
-                `[(local/toggle-field! {:field :column/moving :field-state :drag-start :ident ~ident})]))
+                `[(local/toggle-field! {:field ~entity :field-state :drag-start :ident ~ident})]))
 
 (defn drag-end [{:keys [reconciler component ident columns] :as env}]
   (let [st @reconciler
@@ -74,8 +74,8 @@
                           (local/toggle-field! {:field :column/moving :field-state :drag-end :ident ~ident})]
                         (om/transform-reads reconciler [:route/data])))))
 
-(defn update-order [{:keys [reconciler component target-column-id]}]
-  (om/transact! reconciler `[(local/update-order! {:target-column-id ~target-column-id})]))
+(defn update-order [{:keys [reconciler component entity entity-id]}]
+  (om/transact! reconciler `[(local/update-order! {~entity ~entity-id})]))
 
 (defn start-loading [{:keys [reconciler]}]
   (let [st @reconciler]

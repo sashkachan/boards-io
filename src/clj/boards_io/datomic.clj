@@ -52,6 +52,14 @@
      :db/fulltext true
      :db/doc "A task name"
      :db.install/_attribute :db.part/db}
+
+    {:db/id #db/id[:db.part/db]
+     :db/ident :task/order
+     :db/valueType :db.type/long
+     :db/cardinality :db.cardinality/one
+     :db/fulltext true
+     :db/doc "A task order"
+     :db.install/_attribute :db.part/db}
     
     {:db/id #db/id[:db.part/db]
      :db/ident :task/column
@@ -93,16 +101,19 @@
 
                     {:db/id #db/id[:db.part/user]
                      :task/name "Do the laundry"
+                     :task/order 1
                      :task/column #db/id[:db.part/user -20001]
                      }
 
                     {:db/id #db/id[:db.part/user]
                      :task/name "Take a shower"
+                     :task/order 2
                      :task/column #db/id[:db.part/user -20001]
                      }
 
                     {:db/id #db/id[:db.part/user]
                      :task/name "Do some work"
+                     :task/order 1
                      :task/column #db/id[:db.part/user -20002]
                      }
                     

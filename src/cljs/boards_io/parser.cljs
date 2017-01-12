@@ -108,7 +108,8 @@
         route (-> (get st :app/route) first)
         target-column-order (get-in st [:route/data route :column/by-id target-column-id :column/order])
         column-dragging? (= :drag-start (get-in st [:route/data route :app/local-state :column/moving :state]))
-        dragged-column-id (get-in st [:route/data route :app/local-state :field-idents :column/moving :column-id]) ; ewwwww! replace it with read
+        dragged-column-id (get-in st [:route/data route :app/local-state :field-idents :column/moving :column-id])
+        dragged-task-id (get-in st [:route/data route :app/local-state :field-idents :task/moving :task-id]) ; 
         dragged-column-order (get-in st [:route/data route :column/by-id dragged-column-id :column/order])
         columns (get-in st [:route/data route :column/by-id])]
     (cond-> {:keys [:route/data]}
@@ -156,4 +157,5 @@
                              cmpn (get route->component route) 
                              cur-rd (get-in s [:route/data route])
                              new-rd (merge cur-rd (om/tree->db cmpn (get n route) true))]
+
                          (assoc-in s [:route/data route] new-rd))})))
