@@ -9,7 +9,7 @@
             [goog.log :as glog]
             [boards-io.logger :as l]))
 
-(declare get-root-query)
+(declare get-root-query ColumnItem)
 
 (def modal (om/factory m/Modal {:keyfn :ref}))
 
@@ -70,12 +70,14 @@
                 task-item-m (clj->js
                              (cond-> {:className "board-column-task-item"
                                       :draggable "true"
+                                      :style #js {:order (-> this om/props :task/order) }
                                       :onDragEnd (fn [e]
                                                    (glog/info l/*logger* "onDragEnd task")
                                                    (h/drag-end-task {:reconciler (om/get-reconciler this)
                                                                      :ident {:task-id (:db/id (om/props this))}})
                                                    (.stopPropagation e))
                                       :onDragEnter (fn [e]
+                                                     (println "drag-enter-task " (:db/id task))
                                                      (h/update-order {:reconciler (om/get-reconciler this) :component this :entity :target-task-id :entity-id (:db/id task)})
                                                      (.stopPropagation e))
                                       :onDragStart (fn [e]
@@ -121,17 +123,20 @@
                                 :onDragEnd (fn [e] (h/drag-end drag-data-map))}
                         (not is-moving?)
                         (assoc :onDragEnter
+
                                (fn [e]
+                                 (println "drag-enter-col " column-id)
                                  (h/update-order {:reconciler (om/get-reconciler this) :component this :entity :target-column-id :entity-id column-id}))
        ))]
             (dom/div (clj->js js-map) 
                      [(dom/div #js {:className "board-column-title" :key (str "item-title-" column-id)} (str (:column/name (om/props this))))
-                      (vec
-                       (map
-                        #(column-task (if (= moving-task-id (:db/id %))
-                                        (assoc % :moving true)
-                                        %))
-                        (:task/_column (om/props this))))
+                      (dom/div #js {:className "board-column-tasks" :key (str "board-column-tasks-" column-id)}
+                               (vec
+                                (map
+                                 #(column-task (if (= moving-task-id (:db/id %))
+                                                 (assoc % :moving true)
+                                                 %))
+                                 (:task/_column (om/props this)))))
                       (dom/div #js {:className "board-column-new-item" :key (str "new-item-div-" column-id)}
                                (dom/a #js {:href "#" :onClick #(h/modal-open {:reconciler (om/get-reconciler this) :ref :column/new-task-modal :ident {:column-id (:db/id (om/props this))}} )} "New item..." ))]))))
 

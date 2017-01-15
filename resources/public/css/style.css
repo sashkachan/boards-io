@@ -43,6 +43,11 @@
     order: 9999;
 }
 
+.board-column-tasks {
+    display: flex;
+    flex-direction: column;
+}
+
 .board-column-new-item {
     font-style: italic;
 }

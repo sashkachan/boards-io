@@ -93,7 +93,7 @@
                      :column/board #db/id[:db.part/user -100001]
                      :column/name "Backlog"
                      :column/order 4}
-                    
+
                     {:db/id #db/id[:db.part/user]
                      :column/board #db/id[:db.part/user -100001]
                      :column/name "Archived"

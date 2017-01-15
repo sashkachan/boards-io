@@ -5,6 +5,64 @@
    [boards-io.logger :as l]
    [om.next.impl.parser :as parser]))
 
+
+(defn reorder-things [dragged-entity-id target-entity-id entity-order-key by-id]
+  (let [dragged-entity-order (get-in by-id [dragged-entity-id entity-order-key])
+        target-entity-order (get-in by-id [target-entity-id entity-order-key])
+        diff (- dragged-entity-order target-entity-order)
+        order-k (cond
+                  (> diff 0) 1
+                  (< diff 0) -1
+                  :else 0)
+        affected-orders-range (if (> order-k 0)
+                                (range target-entity-order dragged-entity-order)
+                                (range (+ 1 dragged-entity-order) (+ 1 target-entity-order)))
+        new-by-id (into {}
+                        (map (fn [[entity-id ent-map]]
+                               (let [order (get ent-map entity-order-key) 
+                                     new-order (cond
+                                                 (= 0 order-k) order ;; not dragged over any other el
+                                                 (= order dragged-entity-order) ;; ->
+                                                 target-entity-order ;; 
+                                                 (some #(= % order) affected-orders-range) (+ order order-k)
+                                                 :else order)]
+                                 {entity-id (assoc ent-map entity-order-key new-order)})) by-id))]
+    new-by-id))
+
+(defmulti update-order (fn [{:keys [dragged-column-id target-column-id dragged-task-id target-task-id] :as incoming}]
+                         (let [dispatch (cond
+                                          (and dragged-column-id target-column-id) :col-to-col
+                                          (and dragged-task-id target-column-id) :task-to-col
+                                          (and dragged-task-id target-task-id) :task-to-task
+                                          :else :default)]
+                           (println "dispatching " dispatch)
+                           dispatch)))
+
+(defmethod update-order :col-to-col
+  [{:keys [dragged-column-id target-column-id column/by-id]}]
+  (reorder-things dragged-column-id target-column-id :column/order by-id))
+
+(defmethod update-order :task-to-col
+  [{:keys [dragged-task-id target-column-id state]}]
+                                        ; remove task from column where task belongs to
+                                        ; add task to column where task is dragged to
+                                        ; change column of a task from source column to target column
+
+  (let [source-column-id (get-in state [:task/by-id dragged-task-id :task/column :db/id])
+        new-state (-> state
+                      (update-in [:column/by-id target-column-id :task/_column]
+                                 (fn [tasks] (conj tasks [:task/by-id dragged-task-id])))
+                      (update-in [:column/by-id source-column-id :task/_column]
+                                 (fn [cols] (filterv #(not= [:task/by-id dragged-task-id] %) cols)))
+                      (assoc-in [:task/by-id dragged-task-id :task/column :db/id] target-column-id))]
+    new-state
+    ))
+
+(defmethod update-order :task-to-task
+  [{:keys [dragged-task-id target-task-id task/by-id]}]
+  (println "task-to-task " dragged-task-id target-task-id by-id)
+  (reorder-things dragged-task-id target-task-id :task/order by-id))
+
 (defmulti read om/dispatch)
 (defmulti mutate om/dispatch)
 
@@ -103,40 +161,35 @@
 
 ; todo: include db-path (current route) in env
 (defmethod mutate 'local/update-order!
-  [{:keys [state]} _ {:keys [target-column-id]}]
+  [{:keys [state]} _ {:keys [target-column-id target-task-id]}]
   (let [st @state
         route (-> (get st :app/route) first)
-        target-column-order (get-in st [:route/data route :column/by-id target-column-id :column/order])
         column-dragging? (= :drag-start (get-in st [:route/data route :app/local-state :column/moving :state]))
+        task-dragging? (= :drag-start (get-in st [:route/data route :app/local-state :task/moving :state]))
         dragged-column-id (get-in st [:route/data route :app/local-state :field-idents :column/moving :column-id])
         dragged-task-id (get-in st [:route/data route :app/local-state :field-idents :task/moving :task-id]) ; 
-        dragged-column-order (get-in st [:route/data route :column/by-id dragged-column-id :column/order])
-        columns (get-in st [:route/data route :column/by-id])]
-    (cond-> {:keys [:route/data]}
-      column-dragging?
-      (assoc :action
-             (fn []
-               (let [diff (- dragged-column-order target-column-order)
-                     order-k (cond
-                               (> diff 0) 1
-                               (< diff 0) -1
-                               :else 0)
-                     affected-orders-range (if (> order-k 0)
-                                             (range target-column-order dragged-column-order)
-                                             (range (+ 1 dragged-column-order) (+ 1 target-column-order)))
-                     new-columns (into {}
-                                       (map (fn [[column-id col-map]]
-                                              (let [order (:column/order col-map) 
-                                                    new-order (cond
-                                                                (= 0 order-k) order ;; not dragged over any other el
-                                                                (= order dragged-column-order) ;; ->
-                                                                target-column-order ;; 
-                                                                (some #(= % order) affected-orders-range) (+ order order-k)
-                                                                :else order)]
-                                                {column-id (assoc col-map :column/order new-order)})) columns))
-                     ]
-                 (swap! state assoc-in [:route/data route :column/by-id] new-columns))
-               )))))
+        columns (get-in st [:route/data route :column/by-id])
+        tasks (get-in st [:route/data route :task/by-id])]
+    {:action
+     (fn []
+       (println column-dragging? target-column-id task-dragging? target-task-id)
+       (cond
+           (and column-dragging? target-column-id)
+           (swap! state assoc-in [:route/data route :column/by-id]
+                  (update-order {:dragged-column-id dragged-column-id
+                                 :target-column-id target-column-id
+                                 :column/by-id columns}))
+           (and task-dragging? target-column-id
+                (not= target-column-id (get-in st [:task/by-id dragged-task-id :task/column :db/id])))
+           (swap! state assoc-in [:route/data route]
+                  (update-order {:dragged-task-id dragged-task-id
+                                 :target-column-id target-column-id
+                                 :state (get-in st [:route/data route])}))
+           (and task-dragging? target-task-id)
+           (swap! state assoc-in [:route/data route :task/by-id]
+                  (update-order {:dragged-task-id dragged-task-id
+                                 :target-task-id target-task-id
+                                 :task/by-id tasks}))))}))
 
 (defmethod mutate 'local/loading!
   [{:keys [state]} _ {:keys [loading-state]}]
@@ -159,3 +212,10 @@
                              new-rd (merge cur-rd (om/tree->db cmpn (get n route) true))]
 
                          (assoc-in s [:route/data route] new-rd))})))
+
+                                        ; task to column
+                                        ; task to task
+                                        ; column to column
+                                        ;
+
+

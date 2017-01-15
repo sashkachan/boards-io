@@ -35,12 +35,15 @@
 
 (defn new-task-save [{:keys [reconciler save-btn-field extras] :as env}]
   ; todo: if nil? extras -> exception!
-  (let [column-id (:column-id extras)
+  (let [st @reconciler
+        column-id (:column-id extras)
         form (gdom/getElement "new-task-form")
-        title (forms/getValueByName form "task-title")]
+        title (forms/getValueByName form "task-title")
+        max-order (apply max (map (fn [[_ task]] (:task/order task)) (get-in st [:route/data :columns :task/by-id])))
+        order (if (nil? max-order) 1 (+ 1 max-order))]
     (om/transact! reconciler
                   (into [`(local/toggle-field! {:field ~save-btn-field :field-state :off})
-                         `(save/new-task! {:title ~title :column-id ~column-id})
+                         `(save/new-task! {:title ~title :column-id ~column-id :order ~order})
                          `(local/toggle-field! {:field ~save-btn-field :field-state :on})]
                         (om/transform-reads reconciler [:route/data])))
     (modal-close env)))
@@ -75,7 +78,10 @@
         new-cols (into [] (map (fn [[cid column]] {:db/id cid
                                                   :column/order (:column/order column)}) columns))]
     (om/transact! reconciler
-                  (into `[(save/update-order! {:columns ~new-cols})
+                  (into `[
+                          (local/toggle-field! {:field :column/moving :field-state :drag-end :ident ~ident})]
+                        (om/transform-reads reconciler [:route/data]))
+                  #_(into `[(save/update-order! {:columns ~new-cols})
                           (local/toggle-field! {:field :column/moving :field-state :drag-end :ident ~ident})]
                         (om/transform-reads reconciler [:route/data])))))
 
