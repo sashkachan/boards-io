@@ -70,27 +70,34 @@
                 task-item-m (clj->js
                              (cond-> {:className "board-column-task-item"
                                       :draggable "true"
+                                      :key (:db/id task)
                                       :style #js {:order (-> this om/props :task/order) }
                                       :onDragEnd (fn [e]
-                                                   (glog/info l/*logger* "onDragEnd task")
+                                                   #_(glog/info l/*logger* "onDragEnd task")
                                                    (h/drag-end-task {:reconciler (om/get-reconciler this)
                                                                      :ident {:task-id (:db/id (om/props this))}})
-                                                   (.stopPropagation e))
+                                                   (.stopPropagation e)
+                                                   )
                                       :onDragEnter (fn [e]
-                                                     (println "drag-enter-task " (:db/id task))
-                                                     (h/update-order {:reconciler (om/get-reconciler this) :component this :entity :target-task-id :entity-id (:db/id task)})
-                                                     (.stopPropagation e))
+                                                     ;(println "drag-enter-task " (:db/id task))
+                                                     (h/update-order {:reconciler (om/get-reconciler this)
+                                                                      :component this
+                                                                      :entity :target-task-id
+                                                                      :entity-id (:db/id task)})
+                                                     (.stopPropagation e)
+                                                     )
                                       :onDragStart (fn [e]
                                                      (glog/info l/*logger* "onDragStart task")
                                                      (h/drag-start {:reconciler (om/get-reconciler this)
                                                                     :component this
                                                                     :entity :task/moving
                                                                     :ident {:task-id (:db/id task)}})
-                                                     (.stopPropagation e))}
+                                                     (.stopPropagation e)
+                                                     )}
                                is-moving? (update :className #(str % " moving"))))]
             (dom/div task-item-m (:task/name (om/props this))))))
 
-(def column-task (om/factory ColumnTask))
+(def column-task (om/factory ColumnTask {:keyfn :db/id}))
 
 (defui ColumnItem
   static om/IQuery
@@ -120,14 +127,11 @@
                                 :style style
                                 :draggable "true"
                                 :onDragStart (fn [e] (h/drag-start drag-data-map))
-                                :onDragEnd (fn [e] (h/drag-end drag-data-map))}
+                                :onDragEnd (fn [e] (h/drag-end-column drag-data-map))}
                         (not is-moving?)
                         (assoc :onDragEnter
-
                                (fn [e]
-                                 (println "drag-enter-col " column-id)
-                                 (h/update-order {:reconciler (om/get-reconciler this) :component this :entity :target-column-id :entity-id column-id}))
-       ))]
+                                 (h/update-order {:reconciler (om/get-reconciler this) :component this :entity :target-column-id :entity-id column-id}))))]
             (dom/div (clj->js js-map) 
                      [(dom/div #js {:className "board-column-title" :key (str "item-title-" column-id)} (str (:column/name (om/props this))))
                       (dom/div #js {:className "board-column-tasks" :key (str "board-column-tasks-" column-id)}

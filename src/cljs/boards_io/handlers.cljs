@@ -68,25 +68,29 @@
                 `[(local/toggle-field! {:field ~entity :field-state :drag-start :ident ~ident})]))
 
 (defn drag-end-task [{:keys [reconciler component ident] :as env}]
-  (om/transact! reconciler
-                (into `[(local/toggle-field! {:field :task/moving :field-state :drag-end :ident ~ident})]
-                      (om/transform-reads reconciler [:route/data]))))
+  (let [st @reconciler
+        tasks (get-in st [:route/data :columns :task/by-id])
+        new-tasks (into [] (map (fn [[tid task]] {:db/id tid
+                                                 :task/column (:task/column task)
+                                                 :task/order (:task/order task)}) tasks))]
+    (om/transact! reconciler
+                  `[(local/toggle-field! {:field :task/moving :field-state :drag-end :ident ~ident})
+                    (save/update-order-tasks! {:tasks ~new-tasks })])))
 
-(defn drag-end [{:keys [reconciler component ident columns] :as env}]
+(defn drag-end-column [{:keys [reconciler component ident columns] :as env}]
   (let [st @reconciler
         columns (get-in st [:route/data :columns :column/by-id])
         new-cols (into [] (map (fn [[cid column]] {:db/id cid
                                                   :column/order (:column/order column)}) columns))]
     (om/transact! reconciler
-                  (into `[
-                          (local/toggle-field! {:field :column/moving :field-state :drag-end :ident ~ident})]
-                        (om/transform-reads reconciler [:route/data]))
-                  #_(into `[(save/update-order! {:columns ~new-cols})
-                          (local/toggle-field! {:field :column/moving :field-state :drag-end :ident ~ident})]
-                        (om/transform-reads reconciler [:route/data])))))
+                  `[(local/toggle-field! {:field :column/moving :field-state :drag-end :ident ~ident})
+                    (save/update-order-columns! {:columns ~new-cols })]
+)))
 
 (defn update-order [{:keys [reconciler component entity entity-id]}]
-  (om/transact! reconciler `[(local/update-order! {~entity ~entity-id})]))
+  (om/transact! reconciler
+                (into `[(local/update-order! {~entity ~entity-id})]
+                      #_(om/transform-reads reconciler [:route/data]))))
 
 (defn start-loading [{:keys [reconciler]}]
   (let [st @reconciler]

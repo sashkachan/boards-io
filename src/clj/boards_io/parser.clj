@@ -71,9 +71,18 @@
                                   :column/board ~board-id
                                   :column/order ~order}]))})
 
-(defmethod mutatef 'save/update-order!
+(defmethod mutatef 'save/update-order-tasks!
+  [{:keys [conn] :as env} k {:keys [tasks] :as params}]
+  (println "save/update-order-tasks! " tasks)
+    {:value {:keys '[:task/list]}
+     :action (fn []
+               (if (not= nil tasks)
+                 @(d/transact conn tasks)))})
+
+(defmethod mutatef 'save/update-order-columns!
   [{:keys [conn] :as env} k {:keys [columns] :as params}]
-  (println "save/update-order! " columns)
+  (println "save/update-order-columns! " columns)
     {:value {:keys '[:column/list]}
      :action (fn []
-               @(d/transact conn columns))})
+               (if (not= nil columns)
+                 @(d/transact conn columns)))})
