@@ -73,19 +73,17 @@
                                       :key (:db/id task)
                                       :style #js {:order (-> this om/props :task/order) }
                                       :onDragEnd (fn [e]
-                                                   #_(glog/info l/*logger* "onDragEnd task")
+                                                   (glog/info l/*logger* "onDragEnd task")
                                                    (h/drag-end-task {:reconciler (om/get-reconciler this)
                                                                      :ident {:task-id (:db/id (om/props this))}})
-                                                   (.stopPropagation e)
-                                                   )
+                                                   (.stopPropagation e))
                                       :onDragEnter (fn [e]
                                                      ;(println "drag-enter-task " (:db/id task))
                                                      (h/update-order {:reconciler (om/get-reconciler this)
                                                                       :component this
                                                                       :entity :target-task-id
                                                                       :entity-id (:db/id task)})
-                                                     (.stopPropagation e)
-                                                     )
+                                                     (.stopPropagation e))
                                       :onDragStart (fn [e]
                                                      (glog/info l/*logger* "onDragStart task")
                                                      (h/drag-start {:reconciler (om/get-reconciler this)
@@ -115,9 +113,8 @@
                 class-name (str "board-column " (if is-moving? "moving" ""))
                 style #js {:order (-> this om/props :column/order) }
                 column-id (:db/id (om/props this))
-                moving-task-id (when (= :drag-start (-> local-state :task/moving :state)) 
-                                 (-> this om/props :field-idents :task/moving :task-id)
-                                 nil)
+                moving-task-id (when (= :drag-start (-> local-state :task/moving :state))
+                                 (-> this om/props :field-idents :task/moving :task-id))
                 drag-data-map {:component this
                                :reconciler (om/get-reconciler this)
                                :entity :column/moving
@@ -157,7 +154,6 @@
                               :column/new-column-modal
                               :column/new-task-modal
                               :column/save-btn-field
-                              :task/moving
                               {:field-idents [:column/moving :task/moving]}]}
            :app/route])
 

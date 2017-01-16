@@ -49,13 +49,24 @@
                                         ; change column of a task from source column to target column
 
   (let [source-column-id (get-in state [:task/by-id dragged-task-id :task/column :db/id])
+        max-order (apply max
+                         (map (fn [[_ task]] (:task/order task))
+                              (filter (fn [[_ task]] (= target-column-id (get-in task [:task/column :db/id])))
+                                      (get-in state [:task/by-id]))))
+        target-column-tasks (conj
+                             (or (get-in state [:column/by-id target-column-id :task/_column]) [])
+                             [:task/by-id dragged-task-id])
+        
+        new-order (if (nil? max-order) 1 (+ 1 max-order))
         new-state (-> state
-                      (update-in [:column/by-id target-column-id :task/_column]
-                                 (fn [tasks] (conj tasks [:task/by-id dragged-task-id])))
+                      (assoc-in [:column/by-id target-column-id :task/_column] target-column-tasks)
                       (update-in [:column/by-id source-column-id :task/_column]
                                  (fn [cols] (filterv #(not= [:task/by-id dragged-task-id] %) cols)))
-                      (assoc-in [:task/by-id dragged-task-id :task/column :db/id] target-column-id))]
+                      (assoc-in [:task/by-id dragged-task-id :task/column :db/id] target-column-id)
+                      (assoc-in [:task/by-id dragged-task-id :task/order ] new-order))]
+    (println new-state)
     new-state
+
     ))
 
 (defmethod update-order :task-to-task
@@ -177,24 +188,24 @@
      (fn []
        ;(println column-dragging? target-column-id task-dragging? target-task-id)
        (cond
-           (and column-dragging? target-column-id (not= dragged-column-id target-column-id))
-           (swap! state assoc-in [:route/data route :column/by-id]
-                  (update-order {:dragged-column-id dragged-column-id
-                                 :target-column-id target-column-id
-                                 :column/by-id columns}))
-           (and task-dragging? target-column-id
-                (not= target-column-id dragged-task-column-id))
-           (swap! state assoc-in [:route/data route]
-                  (update-order {:dragged-task-id dragged-task-id
-                                 :target-column-id target-column-id
-                                 :state (get-in st [:route/data route])}))
-           (and task-dragging? target-task-id
-                (not= dragged-task-id target-task-id)
-                (= dragged-task-column-id target-task-column-id))
-           (swap! state assoc-in [:route/data route :task/by-id]
-                  (update-order {:dragged-task-id dragged-task-id
-                                 :target-task-id target-task-id
-                                 :task/by-id tasks}))))}))
+         (and column-dragging? target-column-id (not= dragged-column-id target-column-id))
+         (swap! state assoc-in [:route/data route :column/by-id]
+                (update-order {:dragged-column-id dragged-column-id
+                               :target-column-id target-column-id
+                               :column/by-id columns}))
+         (and task-dragging? target-column-id
+              (not= target-column-id dragged-task-column-id))
+         (swap! state assoc-in [:route/data route]
+                (update-order {:dragged-task-id dragged-task-id
+                               :target-column-id target-column-id
+                               :state (get-in st [:route/data route])}))
+         (and task-dragging? target-task-id
+              (not= dragged-task-id target-task-id)
+              #_(= dragged-task-column-id target-task-column-id))
+         (swap! state assoc-in [:route/data route :task/by-id]
+                (update-order {:dragged-task-id dragged-task-id
+                               :target-task-id target-task-id
+                               :task/by-id tasks}))))}))
 
 (defmethod mutate 'local/loading!
   [{:keys [state]} _ {:keys [loading-state]}]
