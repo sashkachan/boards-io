@@ -54,7 +54,7 @@
                                   :task/name "------------"})
       (not= nil current-shadow-column)
       (update-in [:column/by-id current-shadow-column :task/_column]
-                 filterv #(not= [:task/by-id -1] %))
+                 (fn [c] (filterv #(not= [:task/by-id -1] %) c)))
       (not= nil target-column-id)
       (update-in [:column/by-id target-column-id :task/_column]
                  conj [:task/by-id -1])
