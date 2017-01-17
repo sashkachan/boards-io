@@ -6,8 +6,9 @@
    [om.next.impl.parser :as parser]))
 
 
-(defn reorder-things [dragged-entity-id target-entity-id entity-order-key by-id]
-  (let [dragged-entity-order (get-in by-id [dragged-entity-id entity-order-key])
+(defn reorder-things [dragged-entity-id target-entity-id entity-order-key max-entity-order by-id]
+  (let [dragged-entity-order (or (get-in by-id [dragged-entity-id entity-order-key]) (inc  max-entity-order))
+        _ (println "dragged-entity-order " dragged-entity-order)
         target-entity-order (get-in by-id [target-entity-id entity-order-key])
         diff (- dragged-entity-order target-entity-order)
         order-k (cond
@@ -15,7 +16,7 @@
                   (< diff 0) -1
                   :else 0)
         affected-orders-range (if (> order-k 0)
-                                (range target-entity-order dragged-entity-order)
+                                (range target-entity-order (or dragged-entity-order max-entity-order) )
                                 (range (+ 1 dragged-entity-order) (+ 1 target-entity-order)))
         new-by-id (into {}
                         (map (fn [[entity-id ent-map]]
@@ -38,41 +39,51 @@
                            ;(println "dispatching " dispatch)
                            dispatch)))
 
+(defmethod update-order :task-to-col
+  [{:keys [dragged-task-id target-column-id state ]}]
+
+  (let [current-shadow (get-in state [:task/by-id -1])
+        current-shadow-column (get-in current-shadow [:task/column :db/id])
+        dragged-task-order (or (:task/order current-shadow) (get-in state [:task/by-id dragged-task-id :task/order])) 
+        _ (println "task-to-col " dragged-task-id target-column-id current-shadow-column)]
+    (cond-> state
+      true 
+      (assoc-in [:task/by-id -1] {:db/id -1
+                                  :task/column {:db/id target-column-id}
+                                  :task/order dragged-task-order
+                                  :task/name "------------"})
+      (not= nil current-shadow-column)
+      (update-in [:column/by-id current-shadow-column :task/_column]
+                 filterv #(not= [:task/by-id -1] %))
+      (not= nil target-column-id)
+      (update-in [:column/by-id target-column-id :task/_column]
+                 conj [:task/by-id -1])
+      )))
+
 (defmethod update-order :col-to-col
   [{:keys [dragged-column-id target-column-id column/by-id]}]
-  (reorder-things dragged-column-id target-column-id :column/order by-id))
+  (let [max-order (apply max (map (fn [[_ column]] (:column/order column)) by-id))]
+    (reorder-things dragged-column-id target-column-id :column/order max-order by-id)))
 
-(defmethod update-order :task-to-col
-  [{:keys [dragged-task-id target-column-id state]}]
-                                        ; remove task from column where task belongs to
-                                        ; add task to column where task is dragged to
-                                        ; change column of a task from source column to target column
+(defmethod update-order :task-to-task
+  [{:keys [dragged-task-id target-task-id state]}]
 
-  (let [source-column-id (get-in state [:task/by-id dragged-task-id :task/column :db/id])
+  (let [dragged-task-id-order (get-in state [:task/by-id dragged-task-id :task/order])
+        source-column-id (get-in state [:task/by-id dragged-task-id :task/column :db/id])
+        target-column-id (get-in state [:task/by-id target-task-id :task/column :db/id])
+         _ (println "task-to-task " dragged-task-id target-task-id source-column-id target-column-id )
+        current-shadow-column (get-in state [:task/by-id -1 :task/column :db/id])
         max-order (apply max
                          (map (fn [[_ task]] (:task/order task))
                               (filter (fn [[_ task]] (= target-column-id (get-in task [:task/column :db/id])))
                                       (get-in state [:task/by-id]))))
-        target-column-tasks (conj
-                             (or (get-in state [:column/by-id target-column-id :task/_column]) [])
-                             [:task/by-id dragged-task-id])
-        
-        new-order (if (nil? max-order) 1 (+ 1 max-order))
-        new-state (-> state
-                      (assoc-in [:column/by-id target-column-id :task/_column] target-column-tasks)
-                      (update-in [:column/by-id source-column-id :task/_column]
-                                 (fn [cols] (filterv #(not= [:task/by-id dragged-task-id] %) cols)))
-                      (assoc-in [:task/by-id dragged-task-id :task/column :db/id] target-column-id)
-                      (assoc-in [:task/by-id dragged-task-id :task/order ] new-order))]
-    (println new-state)
-    new-state
+        _ (println "max order in col " max-order)
+        reorder-state (assoc-in state [:task/by-id] (reorder-things -1 target-task-id :task/order max-order (:task/by-id state)))
+        _ (println (:task/by-id reorder-state))]
 
+    ;state'
+    reorder-state
     ))
-
-(defmethod update-order :task-to-task
-  [{:keys [dragged-task-id target-task-id task/by-id]}]
-  ;(println "task-to-task " dragged-task-id target-task-id by-id)
-  (reorder-things dragged-task-id target-task-id :task/order by-id))
 
 (defmulti read om/dispatch)
 (defmulti mutate om/dispatch)
@@ -186,15 +197,14 @@
         tasks (get-in st [:route/data route :task/by-id])]
     {:action
      (fn []
-       ;(println column-dragging? target-column-id task-dragging? target-task-id)
+       (println column-dragging? target-column-id task-dragging? target-task-id)
        (cond
          (and column-dragging? target-column-id (not= dragged-column-id target-column-id))
          (swap! state assoc-in [:route/data route :column/by-id]
                 (update-order {:dragged-column-id dragged-column-id
                                :target-column-id target-column-id
                                :column/by-id columns}))
-         (and task-dragging? target-column-id
-              (not= target-column-id dragged-task-column-id))
+         (and task-dragging? target-column-id)
          (swap! state assoc-in [:route/data route]
                 (update-order {:dragged-task-id dragged-task-id
                                :target-column-id target-column-id
@@ -202,10 +212,10 @@
          (and task-dragging? target-task-id
               (not= dragged-task-id target-task-id)
               #_(= dragged-task-column-id target-task-column-id))
-         (swap! state assoc-in [:route/data route :task/by-id]
+         (swap! state assoc-in [:route/data route]
                 (update-order {:dragged-task-id dragged-task-id
                                :target-task-id target-task-id
-                               :task/by-id tasks}))))}))
+                               :state (get-in st [:route/data route])}))))}))
 
 (defmethod mutate 'local/loading!
   [{:keys [state]} _ {:keys [loading-state]}]

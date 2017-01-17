@@ -84,7 +84,7 @@
                                                   :column/order (:column/order column)}) columns))]
     (om/transact! reconciler
                   `[(local/toggle-field! {:field :column/moving :field-state :drag-end :ident ~ident})
-                    (save/update-order-columns! {:columns ~new-cols })]
+                    #_(save/update-order-columns! {:columns ~new-cols })]
 )))
 
 (defn update-order [{:keys [reconciler component entity entity-id]}]
