@@ -87,9 +87,9 @@
                     #_(save/update-order-columns! {:columns ~new-cols })]
 )))
 
-(defn update-order [{:keys [reconciler component entity entity-id]}]
+(defn update-order [{:keys [reconciler component entity entity-id extra]}]
   (om/transact! reconciler
-                (into `[(local/update-order! {~entity ~entity-id})]
+                (into `[(local/update-order! {~entity ~entity-id :extra ~extra})]
                       #_(om/transform-reads reconciler [:route/data]))))
 
 (defn start-loading [{:keys [reconciler]}]

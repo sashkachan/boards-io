@@ -74,16 +74,18 @@
                              (cond-> {:className "board-column-task-item"
                                       :draggable "true"
                                       :key (:db/id task)
-                                      :style #js {:order (-> this om/props :task/order) }
-                                      :onDragEnter (fn [e]
-                                                     (.log js/console e)
-                                                     (println "drag-enter-task " (:db/id task))
-                                                     (h/update-order {:reconciler (om/get-reconciler this)
-                                                                      :component this
-                                                                      :entity :target-task-id
-                                                                      :entity-id (:db/id task)})
-                                                     (.stopPropagation e)
-                                                     )
+                                      :style #js {:order (:task/order task) }
+                                      :onDragOver (fn [e]
+                                                    (let [height (-> e (.-nativeEvent ) (.-target) (.-clientHeight ))
+                                                          offset (-> e (.-nativeEvent ) (.-offsetY))
+                                                          half-height (/ height 2)
+                                                          dir (if (> (- height offset) half-height) :top :bottom)]
+                                                      (h/update-order {:reconciler (om/get-reconciler this)
+                                                                       :component this
+                                                                       :entity :target-task-id
+                                                                       :extra {:direction dir}
+                                                                       :entity-id (:db/id task)})
+                                                      (.stopPropagation e)))
                                       :onDragStart (fn [e]
 
                                                      (glog/info l/*logger* "onDragStart task")
@@ -94,7 +96,8 @@
                                                      (.stopPropagation e)
                                                      )}
                                is-moving? (update :className #(str % " task-moving"))))]
-            (dom/div task-item-m (:task/name (om/props this))))))
+            (if (not= nil (:task/order task))
+              (dom/div task-item-m (:task/name (om/props this)))))))
 
 (def column-task (om/factory ColumnTask {:keyfn :db/id}))
 

@@ -5,10 +5,8 @@
    [boards-io.logger :as l]
    [om.next.impl.parser :as parser]))
 
-
-(defn reorder-things [dragged-entity-id target-entity-id entity-order-key max-entity-order by-id]
-  (let [dragged-entity-order (or (get-in by-id [dragged-entity-id entity-order-key]) (inc  max-entity-order))
-        _ (println "dragged-entity-order " dragged-entity-order)
+(defn reorder-columns [dragged-entity-id target-entity-id entity-order-key max-entity-order by-id]
+  (let [dragged-entity-order (get-in by-id [dragged-entity-id entity-order-key])
         target-entity-order (get-in by-id [target-entity-id entity-order-key])
         diff (- dragged-entity-order target-entity-order)
         order-k (cond
@@ -17,18 +15,59 @@
                   :else 0)
         affected-orders-range (if (> order-k 0)
                                 (range target-entity-order (or dragged-entity-order max-entity-order) )
-                                (range (+ 1 dragged-entity-order) (+ 1 target-entity-order)))
-        new-by-id (into {}
-                        (map (fn [[entity-id ent-map]]
-                               (let [order (get ent-map entity-order-key) 
-                                     new-order (cond
-                                                 (= 0 order-k) order ;; not dragged over any other el
-                                                 (= order dragged-entity-order) ;; ->
-                                                 target-entity-order ;; 
-                                                 (some #(= % order) affected-orders-range) (+ order order-k)
-                                                 :else order)]
-                                 {entity-id (assoc ent-map entity-order-key new-order)})) by-id))]
-    new-by-id))
+                                (range (+ 1 dragged-entity-order) (+ 1 target-entity-order)))]
+
+    (into {}
+          (map (fn [[entity-id ent-map]]
+                 (let [order (get ent-map entity-order-key) 
+                       new-order (cond
+                                   (= 0 order-k) order ;; not dragged over any other el
+                                   (= order dragged-entity-order) ;; ->
+                                   target-entity-order            ;; 
+                                   (some #(= % order) affected-orders-range) (+ order order-k)
+                                   :else order)]
+                   {entity-id (assoc ent-map entity-order-key new-order)})) by-id))))
+
+(defn reorder-tasks [dragged-entity-id target-entity-id entity-order-key by-id direction]
+  (let [dragged-entity-order (get-in by-id [dragged-entity-id entity-order-key])
+        target-entity-order (get-in by-id [target-entity-id entity-order-key])
+        target-entity-column-id (get-in by-id [target-entity-id :task/column :db/id])
+        by-id' (into {}
+                     (map (fn [[entity-id ent-map]]
+                            (let [order (get ent-map entity-order-key)
+                                  entity-column-id (-> ent-map :task/column :db/id)
+                                  new-order (cond
+                                              (= entity-id dragged-entity-id)
+                                              nil
+                                              (> order dragged-entity-order)
+                                              (dec order)
+                                              :else order)]
+                              (if (= entity-column-id target-entity-column-id)
+                                {entity-id (assoc ent-map entity-order-key new-order)}
+                                {entity-id ent-map}))) by-id))]
+    (into {}
+          (map (fn [[entity-id ent-map]]
+                 (let [order (get ent-map entity-order-key)
+                       entity-column-id (-> ent-map :task/column :db/id)
+                       dragged-entity-new-order (if (= :bottom direction)
+                                                  (inc target-entity-order)
+                                                  target-entity-order)
+                       lower-bound (if (= :bottom direction)
+                                     (inc target-entity-order)
+                                     target-entity-order)
+                       new-order (cond
+                                   (= entity-id dragged-entity-id)
+                                   dragged-entity-new-order
+                                   (>= order lower-bound)
+                                   (inc order)
+                                   :else order)]
+                   (if (= entity-column-id target-entity-column-id )
+                     {entity-id (assoc ent-map entity-order-key new-order)}
+                     {entity-id ent-map}))) (if (= nil dragged-entity-order) by-id  by-id')
+               ))
+    
+
+    ))
 
 (defmulti update-order (fn [{:keys [dragged-column-id target-column-id dragged-task-id target-task-id] :as incoming}]
                          (let [dispatch (cond
@@ -44,46 +83,40 @@
 
   (let [current-shadow (get-in state [:task/by-id -1])
         current-shadow-column (get-in current-shadow [:task/column :db/id])
+        dragged-task-column (get-in state [:task/by-id dragged-task-id :task/column :db/id])
         dragged-task-order (or (:task/order current-shadow) (get-in state [:task/by-id dragged-task-id :task/order])) 
-        _ (println "task-to-col " dragged-task-id target-column-id current-shadow-column)]
+        init-order (if (= dragged-task-column target-column-id) dragged-task-order nil)]
     (cond-> state
       true 
       (assoc-in [:task/by-id -1] {:db/id -1
                                   :task/column {:db/id target-column-id}
-                                  :task/order dragged-task-order
+                                  :task/order init-order
                                   :task/name "------------"})
       (not= nil current-shadow-column)
       (update-in [:column/by-id current-shadow-column :task/_column]
                  (fn [c] (filterv #(not= [:task/by-id -1] %) c)))
+      #_ (not= nil current-shadow-column) ; remove decrease leftover orders
+
+      
       (not= nil target-column-id)
       (update-in [:column/by-id target-column-id :task/_column]
-                 conj [:task/by-id -1])
-      )))
+                 conj [:task/by-id -1]))))
 
 (defmethod update-order :col-to-col
   [{:keys [dragged-column-id target-column-id column/by-id]}]
   (let [max-order (apply max (map (fn [[_ column]] (:column/order column)) by-id))]
-    (reorder-things dragged-column-id target-column-id :column/order max-order by-id)))
+    (reorder-columns dragged-column-id target-column-id :column/order max-order by-id)))
 
 (defmethod update-order :task-to-task
-  [{:keys [dragged-task-id target-task-id state]}]
+  [{:keys [dragged-task-id target-task-id direction state]}]
+  (let [current-shadow-column (get-in state [:task/by-id -1 :task/column :db/id])
+        current-shadow-column-order (get-in state [:task/by-id -1 :task/order]) ]
 
-  (let [dragged-task-id-order (get-in state [:task/by-id dragged-task-id :task/order])
-        source-column-id (get-in state [:task/by-id dragged-task-id :task/column :db/id])
-        target-column-id (get-in state [:task/by-id target-task-id :task/column :db/id])
-         _ (println "task-to-task " dragged-task-id target-task-id source-column-id target-column-id )
-        current-shadow-column (get-in state [:task/by-id -1 :task/column :db/id])
-        max-order (apply max
-                         (map (fn [[_ task]] (:task/order task))
-                              (filter (fn [[_ task]] (= target-column-id (get-in task [:task/column :db/id])))
-                                      (get-in state [:task/by-id]))))
-        _ (println "max order in col " max-order)
-        reorder-state (assoc-in state [:task/by-id] (reorder-things -1 target-task-id :task/order max-order (:task/by-id state)))
-        _ (println (:task/by-id reorder-state))]
-
-    ;state'
-    reorder-state
-    ))
+    (cond-> state
+      (not= dragged-task-id target-task-id)
+      (assoc-in  [:task/by-id] (reorder-tasks -1 target-task-id :task/order (:task/by-id state) direction)))
+    
+))
 
 (defmulti read om/dispatch)
 (defmulti mutate om/dispatch)
@@ -183,7 +216,7 @@
 
 ; todo: include db-path (current route) in env
 (defmethod mutate 'local/update-order!
-  [{:keys [state]} _ {:keys [target-column-id target-task-id]}]
+  [{:keys [state]} _ {:keys [target-column-id target-task-id extra]}]
   (let [st @state
         route (-> (get st :app/route) first)
         column-dragging? (= :drag-start (get-in st [:route/data route :app/local-state :column/moving :state]))
@@ -197,7 +230,6 @@
         tasks (get-in st [:route/data route :task/by-id])]
     {:action
      (fn []
-       (println column-dragging? target-column-id task-dragging? target-task-id)
        (cond
          (and column-dragging? target-column-id (not= dragged-column-id target-column-id))
          (swap! state assoc-in [:route/data route :column/by-id]
@@ -215,7 +247,8 @@
          (swap! state assoc-in [:route/data route]
                 (update-order {:dragged-task-id dragged-task-id
                                :target-task-id target-task-id
-                               :state (get-in st [:route/data route])}))))}))
+                               :state (get-in st [:route/data route])
+                               :direction (get-in extra [:direction])}))))}))
 
 (defmethod mutate 'local/loading!
   [{:keys [state]} _ {:keys [loading-state]}]
