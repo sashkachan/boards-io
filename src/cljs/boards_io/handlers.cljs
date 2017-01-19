@@ -75,7 +75,7 @@
                                                  :task/order (:task/order task)}) tasks))]
     (om/transact! reconciler
                   `[(local/toggle-field! {:field :task/moving :field-state :drag-end :ident ~ident})
-                    (save/update-order-tasks! {:tasks ~new-tasks })])))
+                    #_(save/update-order-tasks! {:tasks ~new-tasks })])))
 
 (defn drag-end-column [{:keys [reconciler component ident columns] :as env}]
   (let [st @reconciler
@@ -84,6 +84,7 @@
                                                   :column/order (:column/order column)}) columns))]
     (om/transact! reconciler
                   `[(local/toggle-field! {:field :column/moving :field-state :drag-end :ident ~ident})
+ 
                     #_(save/update-order-columns! {:columns ~new-cols })]
 )))
 

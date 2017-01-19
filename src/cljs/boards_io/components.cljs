@@ -64,8 +64,7 @@
   (query [this]
          [:db/id :task/column :task/name :task/order])
   Object
-  (componentWillUnmount [this]
-                       (println "Did unmount!"))
+  (componentWillUnmount [this])
   
   (render [this]
           (let [is-moving? (:moving (om/props this))
@@ -78,8 +77,8 @@
                                       :onDragOver (fn [e]
                                                     (let [height (-> e (.-nativeEvent ) (.-target) (.-clientHeight ))
                                                           offset (-> e (.-nativeEvent ) (.-offsetY))
-                                                          half-height (/ height 2)
-                                                          dir (if (> (- height offset) half-height) :top :bottom)]
+                                                          dragbuf (/ height 3)
+                                                          dir (if (> (- height offset) dragbuf) :top :bottom)]
                                                       (h/update-order {:reconciler (om/get-reconciler this)
                                                                        :component this
                                                                        :entity :target-task-id
@@ -87,7 +86,6 @@
                                                                        :entity-id (:db/id task)})
                                                       (.stopPropagation e)))
                                       :onDragStart (fn [e]
-
                                                      (glog/info l/*logger* "onDragStart task")
                                                      (h/drag-start {:reconciler (om/get-reconciler this)
                                                                     :component this
