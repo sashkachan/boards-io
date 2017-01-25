@@ -102,3 +102,9 @@
 (defn stop-loading [{:keys [reconciler]}]
   #_(println "send r " @reconciler)
   (om/transact! reconciler `[(local/loading! {:loading-state false})]))
+
+(defn mouse-enter [{:keys [reconciler entity entity-id]}]
+  (om/transact! reconciler `[(local/toggle-field! {:field ~entity :field-state :enter :ident {:id ~entity-id}})]))
+
+(defn mouse-leave [{:keys [reconciler entity entity-id]}]
+  (om/transact! reconciler `[(local/toggle-field! {:field ~entity :field-state :leave :ident {:id ~entity-id}})]))

@@ -64,14 +64,12 @@
     padding:2px 0;
     height: 2em;
     border: 1px solid black;
+    border-radius: 5px;
+    height: 2em;
 }
 
 .moving {
     border-radius: 5px;
     opacity: 0.5;
     height: 2em;
-}
-
-.task-moving {
-    display: none;
 }

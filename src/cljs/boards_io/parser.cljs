@@ -77,25 +77,25 @@
                            dispatch)))
 
 (defmethod update-order :task-to-col
-  [{:keys [init-order target-column-id state]}]
+  [{:keys [dragged-task-id init-order target-column-id state]}]
 
-  (let [current-shadow (get-in state [:task/by-id -1])
+  (let [current-shadow (get-in state [:task/by-id dragged-task-id])
         current-shadow-column (get-in current-shadow [:task/column :db/id])
         dragged-task-order (or (:task/order current-shadow) init-order)
+        dragged-task (get-in state [:task/by-id dragged-task-id])
         target-col-tasks  (get-in state [:column/by-id target-column-id :task/_column])
-        _ (println "trget col tasks " (count target-col-tasks))
-        new-shadow {:db/id -1
-                    :task/column {:db/id target-column-id}
-                    :task/order dragged-task-order}]
+        new-shadow (-> dragged-task
+                       (assoc-in [:task/column :db/id] target-column-id ))
+]
     (cond-> state
       (or (= target-column-id current-shadow-column)
           (= nil current-shadow-column))
-      (assoc-in [:task/by-id -1] new-shadow)
+      (assoc-in [:task/by-id dragged-task-id] new-shadow)
 
       (and
        (not= nil current-shadow-column)
        (not= target-column-id current-shadow-column))
-      (assoc-in [:task/by-id -1]
+      (assoc-in [:task/by-id dragged-task-id]
                 (assoc-in new-shadow [:task/order]
                           (if (not= 0 (count target-col-tasks))
                             nil
@@ -103,12 +103,11 @@
 
       (not= nil current-shadow-column)
       (update-in [:column/by-id current-shadow-column :task/_column]
-                 (fn [c] (filterv #(not= [:task/by-id -1] %) c)))
+                 (fn [c] (filterv #(not= [:task/by-id dragged-task-id] %) c)))
 
-      
       (not= nil target-column-id)
       (update-in [:column/by-id target-column-id :task/_column]
-                 conj [:task/by-id -1]))))
+                 conj [:task/by-id dragged-task-id]))))
 
 (defmethod update-order :col-to-col
   [{:keys [dragged-column-id target-column-id column/by-id]}]
@@ -116,14 +115,12 @@
     (reorder-columns dragged-column-id target-column-id :column/order max-order by-id)))
 
 (defmethod update-order :task-to-task
-  [{:keys [ target-task-id direction state]}]
-  (let [current-shadow-column (get-in state [:task/by-id -1 :task/column :db/id])
-        current-shadow-column-order (get-in state [:task/by-id -1 :task/order]) ]
+  [{:keys [dragged-task-id target-task-id direction state]}]
+  (let [current-shadow-column (get-in state [:task/by-id dragged-task-id :task/column :db/id])
+        current-shadow-column-order (get-in state [:task/by-id dragged-task-id :task/order]) ]
     (cond-> state
-      (not= -1 target-task-id)
-      (assoc-in  [:task/by-id] (reorder-tasks -1 target-task-id :task/order (:task/by-id state) direction)))
-    
-))
+      (not= dragged-task-id target-task-id)
+      (assoc-in  [:task/by-id] (reorder-tasks dragged-task-id target-task-id :task/order (:task/by-id state) direction)))))
 
 (defmulti read om/dispatch)
 (defmulti mutate om/dispatch)
@@ -172,9 +169,7 @@
   [{:keys [target state query parser db-path] :as env} k _]
   (let [st @state
         db-path' (conj db-path k)
-        env' (assoc env :db-path db-path' )
-        ;_ (println (get-in st db-path'))
-        ]
+        env' (assoc env :db-path db-path' )]
     (cond-> {}
       (and (not= nil target) (not= nil query))
       (merge (get-query-root env'))
@@ -212,65 +207,12 @@
              (swap! state assoc :route/data nil)
              (swap! state assoc :app/route route))})
 
-(defmulti toggle-field-plug (fn [ {:keys [field]} _ ] field))
-
-(defmethod toggle-field-plug :task/moving [{:keys [field field-state ident db-path]} state]
-  (cond
-    (= field-state :drag-start)
-    (let [task-id (:task-id ident)
-          init-order (get-in state (merge db-path :task/by-id task-id :task/order))
-          target-column-id (get-in state (merge db-path :task/by-id task-id :task/column :db/id))]
-      (assoc-in state db-path
-                (update-order {:init-order init-order
-                               :target-column-id target-column-id
-                               :state (get-in state db-path)})))
-    (= field-state :drag-end)
-    (let [task-id (:task-id ident)
-          task-details (get-in state (merge db-path :task/by-id task-id))
-          old-column (get-in state (merge db-path :task/by-id task-id :task/column :db/id))
-          shadow-order (get-in state (merge db-path :task/by-id -1 :task/order))
-          shadow-column (get-in state (merge db-path :task/by-id -1 :task/column :db/id))
-          task-upd (-> task-details
-                       (assoc-in [:task/column :db/id] shadow-column)
-                       (assoc-in [:task/order] shadow-order))]
-
-      (-> state
-          (dissoc (merge db-path :task/by-id -1))
-          (assoc-in (merge db-path :task/by-id task-id) task-upd)
-          (update-in (merge db-path :column/by-id old-column :task/_column)
-                                (fn [c] (filterv #(not= [:task/by-id task-id] %) c)))
-          (update-in (merge db-path :column/by-id shadow-column :task/_column)
-                     #(conj % [:task/by-id task-id]))
-          (update-in (merge db-path :column/by-id shadow-column :task/_column)
-                     (fn [c] (filterv #(not= [:task/by-id -1] %) c)))))
-    :else state))
-
-#_(defmethod toggle-field-plug :column/moving [{:keys [field field-state ident db-path]} state]
-  (cond
-    (= field-state :drag-end)
-    (let [column-id (get-in state (merge db-path :task/by-id -1 :task/column :db/id))
-          dragged-order (get-in state (merge db-path :task/by-id -1 :task/order))
-          state' (-> state
-                     (dissoc (merge db-path :task/by-id -1))
-                     (update-in (merge db-path :column/by-id column-id :task/_column)
-                                (fn [c] (filterv #(not= [:task/by-id -1] %) c)))) 
-          ]
-      state)
-    :else state))
-
-(defmethod toggle-field-plug :default
-  [_ state]
-  state)
-
 (defmethod mutate 'local/toggle-field!
   [{:keys [state]} _ {:keys [field field-state ident] :as incm}]
   (let [state' @state
         route (first (:app/route state'))]
     {:keys [:route/data]
      :action (fn []
-               (if-let [alt-state (toggle-field-plug
-                                   (merge {:db-path [route]} incm) (:route/data state'))]
-                     (swap! state assoc :route/data alt-state))
                (swap! state assoc-in [:route/data route :app/local-state field] {:state field-state})
                (swap! state assoc-in [:route/data route :app/local-state :field-idents] {field ident}))}))
 
@@ -298,11 +240,12 @@
                                :column/by-id columns}))
          (and task-dragging? target-column-id)
          (swap! state assoc-in [:route/data route]
-                (update-order {:target-column-id target-column-id
+                (update-order {:dragged-task-id dragged-task-id
+                               :target-column-id target-column-id
                                :state (get-in st [:route/data route])}))
          (and task-dragging? target-task-id)
          (swap! state assoc-in [:route/data route]
-                (update-order {
+                (update-order {:dragged-task-id dragged-task-id
                                :target-task-id target-task-id
                                :state (get-in st [:route/data route])
                                :direction (get-in extra [:direction])}))))}))

@@ -71,29 +71,29 @@
                 task (om/props this)
                 task-item-m (clj->js
                              (cond-> {:className "board-column-task-item"
-                                      :draggable "true"
+                                      ;:draggable "true"
                                       :key (:db/id task)
                                       :style #js {:order (:task/order task) }
+                                      :onMouseEnter (fn [e]
+                                                      (h/mouse-enter {:reconciler (om/get-reconciler this)
+                                                                      :entity :task/over
+                                                                      :entity-id (:db/id task)}))
+                                      :onMouseLeave (fn [e]
+                                                      (h/mouse-leave {:reconciler (om/get-reconciler this)
+                                                                      :entity :task/over
+                                                                      :entity-id (:db/id task)}))
                                       :onDragOver (fn [e]
                                                     (let [height (-> e (.-nativeEvent ) (.-target) (.-clientHeight ))
                                                           offset (-> e (.-nativeEvent ) (.-offsetY))
-                                                          dragbuf (/ height 3)
+                                                          dragbuf (/ height 10)
                                                           dir (if (> (- height offset) dragbuf) :top :bottom)]
                                                       (h/update-order {:reconciler (om/get-reconciler this)
                                                                        :component this
                                                                        :entity :target-task-id
                                                                        :extra {:direction dir}
                                                                        :entity-id (:db/id task)})
-                                                      (.stopPropagation e)))
-                                      :onDragStart (fn [e]
-                                                     (glog/info l/*logger* "onDragStart task")
-                                                     (h/drag-start {:reconciler (om/get-reconciler this)
-                                                                    :component this
-                                                                    :entity :task/moving
-                                                                    :ident {:task-id (:db/id task)}})
-                                                     (.stopPropagation e)
-                                                     )}
-                               is-moving? (update :className #(str % " task-moving"))))]
+                                                      (.stopPropagation e)))}
+                               is-moving? (update :className #(str % " moving"))))]
             (if (not= nil (:task/order task))
               (dom/div task-item-m (:task/name (om/props this)))))))
 
@@ -110,9 +110,8 @@
          [:column/by-id (-> item :db/id)])
   Object
   (render [this]
-          (let [local-state (:app/local-state (om/props this))
-                _ (println "local-state " local-state)
-                is-moving? (-> this om/props :moving)
+          (let [is-moving? (-> this om/props :moving)
+                task-over (-> this om/props :task/over)
                 class-name (str "board-column " (if is-moving? "moving" ""))
                 style #js {:order (-> this om/props :column/order) }
                 column-id (:db/id (om/props this))
@@ -124,15 +123,32 @@
                                 :key (str "item-" column-id)
                                 :style style
                                 :draggable "true"
-                                :onDragStart (fn [e] (h/drag-start drag-data-map))
+                                :onDragStart (fn [e]
+                                               (let [cnvs (js/document.createElementNS "http://www.w3.org/1999/xhtml","canvas")
+                                                     _ (set! (.-width cnvs) 30)
+                                                     _ (set! (.-height cnvs) 10)
+                                                     ctx (.getContext cnvs "2d")
+                                                     ;_ (set! (.-font ctx) "48px serif")
+                                                     ;_ (.fillText ctx "<->" 10 50)
+                                                     _ (.setDragImage (.-dataTransfer e) cnvs 25 25)]
+                                                 (if (and (= (-> task-over :state) :enter)
+                                                          (not= nil (-> task-over :ident :id)))
+                                                   (let [;_ (.fillText ctx "<->" 10 10)
+                                                         ]
+                                                     (h/drag-start
+                                                      (-> drag-data-map
+                                                          (assoc :entity :task/moving)
+                                                          (assoc :ident {:task-id (-> task-over :ident :id)}))))
+                                                   (let [_ (.fillText ctx "<=>" 10 10)]
+                                                     (h/drag-start drag-data-map)))))
                                 :onDrop (fn [e] (println "column drop "))
                                 :onDragEnd (fn [e] (println "column on drag end")
+                                             (.preventDefault e)
                                              (h/drag-end-task {:reconciler (om/get-reconciler this)})
                                              (h/drag-end-column drag-data-map))}
                         (not is-moving?)
                         (assoc :onDragEnter
                                (fn [e]
-                                 
                                  (h/update-order {:reconciler (om/get-reconciler this) :component this :entity :target-column-id :entity-id column-id}))))]
             (dom/div (clj->js js-map) 
                      [(dom/div #js {:className "board-column-title" :key (str "item-title-" column-id)} (str (:column/name (om/props this))))
@@ -155,7 +171,7 @@
                               :column/new-task-modal
                               :column/save-btn-field
                               :task/moving
-                              {:field-idents [:column/moving :task/moving]}]}
+                              {:field-idents [:column/moving :task/moving :task/over]}]}
            :app/route])
 
   Object
@@ -174,6 +190,9 @@
                                                              (= :drag-start task-moving))
                                                         (assoc :moving true)) (:task/_column item)))
                                item (cond-> item
+                                      true
+                                      (assoc :task/over {:state (-> local-state :task/over :state )
+                                                         :ident (-> local-state :field-idents :task/over)})
                                       (and (= column-moving :drag-start) (= (:db/id item) mov-col-id))
                                       (assoc :moving true))
                                item (assoc item :task/_column task-items)]
