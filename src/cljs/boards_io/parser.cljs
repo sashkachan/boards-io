@@ -225,9 +225,6 @@
         task-dragging? (= :drag-start (get-in st [:route/data route :app/local-state :task/moving :state]))
         dragged-column-id (get-in st [:route/data route :app/local-state :field-idents :column/moving :column-id])
         dragged-task-id (get-in st [:route/data route :app/local-state :field-idents :task/moving :task-id]) ;
-        dragged-task-column-id (get-in st [:route/data route :task/by-id dragged-task-id :task/column :db/id])
-        target-task-column-id (get-in st [:route/data route :task/by-id target-task-id :task/column :db/id])
-;        _ (println "task-column-id " target-task-column-id "target-column-id " target-column-id)
         columns (get-in st [:route/data route :column/by-id])
         tasks (get-in st [:route/data route :task/by-id])]
     {:action
