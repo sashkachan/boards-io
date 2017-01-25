@@ -70,11 +70,12 @@
 (defn drag-end-task [{:keys [reconciler component ident] :as env}]
   (let [st @reconciler
         tasks (get-in st [:route/data :columns :task/by-id])
+        moving-task (get-in st [:route/data :columns :app/local-state :field-idents :task/moving])
         new-tasks (into [] (map (fn [[tid task]] {:db/id tid
                                                  :task/column (:task/column task)
                                                  :task/order (:task/order task)}) tasks))]
     (om/transact! reconciler
-                  `[(local/toggle-field! {:field :task/moving :field-state :drag-end :ident ~ident})
+                  `[(local/toggle-field! {:field :task/moving :field-state :drag-end :ident ~moving-task})
                     #_(save/update-order-tasks! {:tasks ~new-tasks })])))
 
 (defn drag-end-column [{:keys [reconciler component ident columns] :as env}]
