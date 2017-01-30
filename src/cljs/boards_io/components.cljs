@@ -124,25 +124,18 @@
                                 :style style
                                 :draggable "true"
                                 :onDragStart (fn [e]
-                                               (let [cnvs (js/document.createElementNS "http://www.w3.org/1999/xhtml","canvas")
-                                                     _ (set! (.-width cnvs) 30)
-                                                     _ (set! (.-height cnvs) 10)
-                                                     ctx (.getContext cnvs "2d")
-                                                     ;_ (set! (.-font ctx) "48px serif")
-                                                     ;_ (.fillText ctx "<->" 10 50)
-                                                     _ (.setDragImage (.-dataTransfer e) cnvs 25 25)]
+                                               (let []
                                                  (if (and (= (-> task-over :state) :enter)
                                                           (not= nil (-> task-over :ident :id)))
-                                                   (let [;_ (.fillText ctx "<->" 10 10)
-                                                         ]
+                                                   (let []
                                                      (h/drag-start
                                                       (-> drag-data-map
                                                           (assoc :entity :task/moving)
                                                           (assoc :ident {:task-id (-> task-over :ident :id)}))))
-                                                   (let [_ (.fillText ctx "<=>" 10 10)]
+                                                   (let []
                                                      (h/drag-start drag-data-map)))))
                                 :onDrop (fn [e] (println "column drop "))
-                                :onDragEnd (fn [e] (println "column on drag end")
+                                :onDragEnd (fn [e] 
                                              (.preventDefault e)
                                              (h/drag-end-task {:reconciler (om/get-reconciler this)})
                                              (h/drag-end-column drag-data-map))}
@@ -179,24 +172,23 @@
    [this]
    (let [{:keys [app/local-state]} (om/props this)
          board-id (js/parseInt (-> (om/props this) :app/route second :board-id))
-         proc-col-item (fn [item]
+         proc-col-item (fn [col]
                          (let [mov-col-id (-> local-state :field-idents :column/moving :column-id)
                                mov-task-id (-> local-state :field-idents :task/moving :task-id)
                                column-moving (-> local-state :column/moving :state)
                                task-moving (-> local-state :task/moving :state)
-                               task-items (into []
-                                                (map #(cond-> %
-                                                        (and (= (:db/id %) mov-task-id)
-                                                             (= :drag-start task-moving))
-                                                        (assoc :moving true)) (:task/_column item)))
-                               item (cond-> item
-                                      true
-                                      (assoc :task/over {:state (-> local-state :task/over :state )
-                                                         :ident (-> local-state :field-idents :task/over)})
-                                      (and (= column-moving :drag-start) (= (:db/id item) mov-col-id))
-                                      (assoc :moving true))
-                               item (assoc item :task/_column task-items)]
-                           (column-item item)))
+                               task-items (mapv #(cond-> %
+                                                   (and (= (:db/id %) mov-task-id)
+                                                        (= :drag-start task-moving))
+                                                   (assoc :moving true)) (:task/_column col))
+                               col (cond-> col
+                                     (and (= column-moving :drag-start) (= (:db/id col) mov-col-id))
+                                     (assoc :moving true))
+                               col' (-> col
+                                        (assoc :task/_column task-items)
+                                        (assoc :task/over {:state (-> local-state :task/over :state )
+                                                           :ident (-> local-state :field-idents :task/over)})) ]
+                           (column-item col')))
          cols (into [] (map proc-col-item (:column/list (om/props this))))
          cols (merge
                cols

@@ -85,8 +85,7 @@
         dragged-task (get-in state [:task/by-id dragged-task-id])
         target-col-tasks  (get-in state [:column/by-id target-column-id :task/_column])
         new-shadow (-> dragged-task
-                       (assoc-in [:task/column :db/id] target-column-id ))
-]
+                       (assoc-in [:task/column :db/id] target-column-id))]
     (cond-> state
       (or (= target-column-id current-shadow-column)
           (= nil current-shadow-column))

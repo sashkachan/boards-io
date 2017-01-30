@@ -30,6 +30,7 @@
     :parser (om/parser {:read parser/read :mutate parser/mutate})
     :normalize true
     :id-key :db/id
+    ;:logger 
     :merge  (parser/merger c/route->component)
     :send (transit/transit-post "/api")}))
 
