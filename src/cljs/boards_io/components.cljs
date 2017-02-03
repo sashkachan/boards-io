@@ -124,16 +124,15 @@
                                 :style style
                                 :draggable "true"
                                 :onDragStart (fn [e]
-                                               (let []
+                                               (let [img (doto (js/Image.) (aset "src" ""))
+                                                     _ (.setDragImage (.-dataTransfer e) img 0 0)]
                                                  (if (and (= (-> task-over :state) :enter)
                                                           (not= nil (-> task-over :ident :id)))
-                                                   (let []
-                                                     (h/drag-start
-                                                      (-> drag-data-map
-                                                          (assoc :entity :task/moving)
-                                                          (assoc :ident {:task-id (-> task-over :ident :id)}))))
-                                                   (let []
-                                                     (h/drag-start drag-data-map)))))
+                                                   (h/drag-start
+                                                    (-> drag-data-map
+                                                        (assoc :entity :task/moving)
+                                                        (assoc :ident {:task-id (-> task-over :ident :id)})))
+                                                   (h/drag-start drag-data-map))))
                                 :onDrop (fn [e] (println "column drop "))
                                 :onDragEnd (fn [e] 
                                              (.preventDefault e)
