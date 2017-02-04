@@ -22,7 +22,7 @@
 
 (enable-console-print!)
 
-(defonce state (atom {:app/route []}))
+(defonce state {:app/route []})
 
 (def reconciler
   (om/reconciler
@@ -31,7 +31,7 @@
     :normalize true
     :id-key :db/id
     ;:logger 
-    :merge  (parser/merger c/route->component)
+    ;:merge  (parser/merger c/route->component)
     :send (transit/transit-post "/api")}))
 
 (def env {:reconciler reconciler

@@ -9,18 +9,19 @@
 (defmulti read om/dispatch)
 (defmulti mutate om/dispatch)
 
-(defn denorm-data-val [key {:keys [db-path state query]}]
+(defn denorm-data-val [key {:keys [db-path ast state query]}]
   (let [state' @state
-        refs (get-in state' db-path)]
-    (when (not (empty? (get-in state' db-path)))
-      (get (om/db->tree [{key query}] refs refs) key))))
+        refs (get-in state' db-path)
+        q [(om/ast->query ast)]]
+    (when (not (empty? refs))
+      (get (om/db->tree q refs state') key))))
 
 (defmethod read :board/list [{:keys [ast target query state db-path] :as env} k _]
   (let [st @state]
     (cond-> {}
       (nil? target)
       (assoc :value (denorm-data-val k env))
-      (not (nil? target))
+      (not= nil target)
       (assoc target (assoc ast :query-root true)))))
 
 (defmethod read :column/list [{:keys [ast target route query state db-path] :as env} k params]
@@ -31,12 +32,10 @@
                         (assoc :query-root true)
                         (assoc :params (second route))))
       (nil? target)
-      (assoc :value (denorm-data-val k env))))
-  )
+      (assoc :value (denorm-data-val k env)))))
 
 (defn get-query-root
   [{:keys [ast target parser] :as env}]
-  #_(println "get-query-root ast " ast)
   {target (update-in ast [:query]
                      #(let [q (if (vector? %) % [%])
                             res (parser env q target)]
@@ -69,14 +68,17 @@
         route-params (-> (get st :app/route) second)
         env' (-> env
                  (assoc :route [route route-params])
-                 (assoc :db-path [:route/data])) 
-        query' (if-not (empty? query)
-                 (get (first query) route))]
+                 (assoc :db-path [:route/data]))
+        query' (into {} (filter #(not-empty (get % route)) query))]
+
     (if (nil? route)
       {:value nil}
-      (let [parsed (parser env' [{route (or query' query)}] target)]
+      (let [parsed (parser env' [query'] target)
+            sub-query (-> (assoc ast :query parsed)
+                          (parser/ast->expr)
+                          (parser/expr->ast))]
         (cond-> {}
-          (not= nil target) (assoc target (parser/expr->ast (first parsed)))
+          (not= nil target) (assoc target sub-query)
           (= nil target ) (assoc :value parsed))))))
 
 (defmethod read :app/route
@@ -89,6 +91,8 @@
   {:keys [:route/data]
    :action (fn []
              (swap! state assoc :route/data nil)
+             (swap! state dissoc :board/list)
+             (swap! state dissoc :column/list)
              (swap! state assoc :app/route route))})
 
 (defmethod mutate 'local/toggle-field!
@@ -142,13 +146,3 @@
 (defmethod mutate :default
   [_  _ _]
   {:remote true})
-
-(def merger (fn [route->component]
-              (fn [r s n q]
-                {:keys [:route/data]    ; todo: dynamic keys 
-                 :next (let [route (-> s :app/route first)
-                             cmpn (get route->component route) 
-                             cur-rd (get-in s [:route/data route])
-                             new-rd (merge cur-rd (om/tree->db cmpn (get n route) true))]
-
-                         (assoc-in s [:route/data route] new-rd))})))

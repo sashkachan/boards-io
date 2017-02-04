@@ -10,8 +10,9 @@
 (defn change-route! [{:keys [reconciler matcher this] :as env} route]
   (let [{:keys [handler route-params]} (matcher route)]
     (glog/info l/*logger* "change-route! pre")
+    (glog/info l/*logger*  route-params)
     (om/transact! reconciler `[(local/route! {:route [~handler ~route-params]})])
-    (glog/info l/*logger* "change-route! post")
+    (glog/info l/*logger* "change-route! post" )
     (om/transact! reconciler (om/transform-reads reconciler [:route/data]))
     (glog/info l/*logger* "change-route! reread")))
 

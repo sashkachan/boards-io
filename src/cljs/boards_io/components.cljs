@@ -35,7 +35,7 @@
   static om/IQuery
   (query [this]
          `[{:board/list ~(om/get-query BoardItem)} {:app/local-state [:board/new-board-modal]}])
-
+  
   Object
   (render [this]
           (dom/div #js {:key "board-list"}
@@ -100,14 +100,16 @@
 (def column-task (om/factory ColumnTask {:keyfn :db/id}))
 
 (defui ColumnItem
-  static om/IQuery
-  (query [this]
-         [:db/id :column/name :column/order {:column/board (om/get-query BoardItem)}
-          {:task/_column (om/get-query ColumnTask)}])
-  
   static om/Ident
   (ident [_ item]
          [:column/by-id (-> item :db/id)])
+  
+  static om/IQuery
+  (query [this]
+         `[:db/id :column/name :column/order {:column/board ~(om/get-query BoardItem)}
+          {:task/_column ~(om/get-query ColumnTask)}])
+  
+
   Object
   (render [this]
           (let [is-moving? (-> this om/props :moving)
@@ -152,12 +154,9 @@
 (def column-item (om/factory ColumnItem {:keyfn :db/id}))
 
 (defui ColumnList
-  static om/IQueryParams
-  (params [this]
-          {:board-id 0})
   static om/IQuery
   (query [this]
-         `[({:column/list ~(om/get-query ColumnItem)} {:board-id ?board-id})
+         `[{:column/list ~(om/get-query ColumnItem)}
            {:app/local-state [:column/moving
                               :column/new-column-modal
                               :column/new-task-modal
@@ -222,13 +221,13 @@
 
 
 (def route->component
-  {:boards BoardList
-   :columns ColumnList})
+  {:columns ColumnList
+   :boards  BoardList})
 
 (def route->factory
   (zipmap (keys route->component)
           (map (fn [c] (om/factory c {:keyfn #(str (-> % keys first))})) (vals route->component))))
 
 (defn get-root-query []
-  {:route/data [(zipmap (keys route->component)
-                       (map om/get-query (vals route->component)))]})
+  {:route/data (mapv hash-map (keys route->component)
+                     (map om/get-query (vals route->component)))})
