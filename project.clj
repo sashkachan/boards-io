@@ -12,6 +12,7 @@
                  [org.clojure/tools.namespace "0.2.11"]
                  [org.clojure/tools.logging   "0.3.1"]
                  [com.datomic/datomic-free    "0.9.5394" :exclusions [com.google.guava/guava #_org.slf4j/log4j-over-slf4j #_ org.slf4j/slf4j-nop]]
+                 [cljsjs/react-bootstrap "0.30.7-0" :exclusions [cljsjs.react]]
                  [com.stuartsierra/component  "0.3.1"]
                  [bidi "2.0.11"]
                  [com.cognitect/transit-cljs  "0.8.239"]

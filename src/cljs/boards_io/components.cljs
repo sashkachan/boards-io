@@ -48,13 +48,13 @@
                                            :key "board-list-div2-a"
                                            :onClick #(h/modal-open {:reconciler (om/get-reconciler this) :ref :board/new-board-modal} )} "New board..."))
                       (let [{:keys [app/local-state]} (om/props this)]
-                        (if (= 1 (-> local-state :board/new-board-modal :state))
-                          (modal {:root-query (get-root-query)
-                                  :save-btn-state (-> local-state :board/save-btn-field :state)
-                                  :ref :board/new-board-modal
-                                  :submit-fn (partial h/new-board-save)
-                                  :modal-content m/new-board-form
-                                  :title "Create new board"})))])))
+                        (modal {:root-query (get-root-query)
+                                :show (= 1 (-> local-state :board/new-board-modal :state))
+                                :save-btn-state (-> local-state :board/save-btn-field :state)
+                                :ref :board/new-board-modal
+                                :submit-fn (partial h/new-board-save)
+                                :modal-content m/new-board-form
+                                :title "Create new board"}))])))
 
 (defui ColumnTask
   static om/Ident
@@ -186,35 +186,33 @@
                                         (assoc :task/_column task-items)
                                         (assoc :task/over {:state (-> local-state :task/over :state )
                                                            :ident (-> local-state :field-idents :task/over)})) ]
-                           (column-item col')))
-         cols (into [] (map proc-col-item (:column/list (om/props this))))
-         cols (merge
-               cols
+                           (column-item col')))]
+     (dom/div #js {:className "board-wrap" :key (str "board-wrap-" board-id)}
+              (merge
+               (into [] (map proc-col-item (:column/list (om/props this))))
                (dom/div #js {:className "board-column new-column" :key "board-column-new-column"}
                         (dom/a #js {:href "#"
                                     :key "board-column-new-column-href"
                                     :onClick #(h/modal-open
                                                {:reconciler (om/get-reconciler this)
                                                 :ref :column/new-column-modal
-                                                :ident {:board-id board-id}} )} "New column...")))]
-     (dom/div #js {:className "board-wrap" :key (str "board-wrap-" board-id)}
-              (cond-> cols
-                (= 1 (-> local-state :column/new-column-modal :state))
-                (conj (modal {:root-query (get-root-query)
-                              :save-btn-state (-> local-state :column/save-btn-field :state)
-                              :ref :column/new-column-modal
-                              :submit-fn (partial h/new-column-save)
-                              :modal-content m/new-column-form
-                              :extras (-> local-state :field-idents :column/new-column-modal)
-                              :title "Create new column"}))
-                (= 1 (-> local-state :column/new-task-modal :state ))
-                (conj (modal {:root-query (get-root-query)
-                              :save-btn-state ( -> local-state :column/save-btn-field :state)
-                              :ref :column/new-task-modal
-                              :submit-fn (partial h/new-task-save)
-                              :modal-content m/new-task-form
-                              :extras (-> local-state :field-idents :column/new-task-modal)
-                              :title "Create new task"})))))))
+                                                :ident {:board-id board-id}} )} "New column..."))
+               (modal {:root-query (get-root-query)
+                       :show (= 1 (-> local-state :column/new-column-modal :state))
+                       :save-btn-state (-> local-state :column/save-btn-field :state)
+                       :ref :column/new-column-modal
+                       :submit-fn (partial h/new-column-save)
+                       :modal-content m/new-column-form
+                       :extras (-> local-state :field-idents :column/new-column-modal)
+                       :title "Create new column"})
+               (modal {:root-query (get-root-query)
+                       :show (= 1 (-> local-state :column/new-task-modal :state ))
+                       :save-btn-state ( -> local-state :column/save-btn-field :state)
+                       :ref :column/new-task-modal
+                       :submit-fn (partial h/new-task-save)
+                       :modal-content m/new-task-form
+                       :extras (-> local-state :field-idents :column/new-task-modal)
+                       :title "Create new task"}))))))
 
 
 

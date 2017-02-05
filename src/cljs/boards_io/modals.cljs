@@ -1,6 +1,7 @@
 (ns boards-io.modals
   (:require [om.dom :as dom]
             [om.next :as om :refer-macros [defui ui]]
+            [cljsjs.react-bootstrap]
             [boards-io.handlers :as h]))
 
 
@@ -45,42 +46,33 @@
                              :key "new-column-form-div-inp1"}
                         )])))
 
+(def bs-modal (js/React.createFactory js/ReactBootstrap.Modal))
+(def bs-button (js/React.createFactory js/ReactBootstrap.Button))
+(def bs-modal-title (js/React.createFactory js/ReactBootstrap.Modal.Title))
+(def bs-modal-header (js/React.createFactory js/ReactBootstrap.Modal.Header))
+(def bs-modal-body (js/React.createFactory js/ReactBootstrap.Modal.Body))
+(def bs-modal-footer (js/React.createFactory js/ReactBootstrap.Modal.Footer))
+
 (defui Modal
   Object
   (render
    [this]
-   (let [{:keys [save-btn-state ref modal-content submit-fn title extras] :as props} (om/props this)
+   (let [{:keys [save-btn-state ref modal-content submit-fn title extras show] :as props} (om/props this)
          h-env {:reconciler (om/get-reconciler this)
                 :save-btn-field :board/save-btn-field
                 :ref ref
                 :extras extras}
-         close (fn [b cl ar] (dom/button
-                             #js {:type "button"
-                                  :className cl
-                                  :aria-label ar
-                                  :key "mod-btn1"
-                                  :onClick #(h/modal-close h-env)}
-                             (dom/span #js {:aria-hidden "true" :key "mod-spn-1"} b)))
-         save-stngs (-> (cond-> {:type "button"
-                                 :className "btn btn-primary"
+         close (fn [b] (bs-button #js {:onClick #(h/modal-close h-env)} b))
+         save-stngs (-> (cond-> {:bsStyle "primary"
                                  :onClick #(submit-fn h-env)
                                  :key "mod-btn2"}
                           (= :off save-btn-state) (assoc :disabled "disabled"))
                         clj->js)
-         save (dom/button save-stngs  "Save")]
-     (dom/div #js {:id "modal-wrap"}
-              (dom/div #js {:className "modal fade in"
-                            :style #js {:display "visible"} }
-                       (dom/div
-                        #js {:className "modal-dialog" :role "document" :id "new-board-save" :key "new-board-save"}
-                        (dom/div #js {:className "modal-content" :key "new-board-save-div1"}
-                                 [(dom/div #js {:className "modal-header" :key "new-board-save-div11" }
-                                           [(close "×" "close" "Close")
-                                            (dom/h4 #js {:className "modal-title" :key "new-board-save-h41"} title)])
-                                  (dom/div #js {:className "modal-body" :key "new-board-save-div12"}
-                                           modal-content)
-                                  (dom/div #js {:className "modal-footer" :key "new-board-save-div13"}
-                                           [(close "Close" "btn btn-default" "")
-                                            save])]))))
-
-     )))
+         save (fn [b] (bs-button save-stngs b))]
+     (bs-modal #js {:show show :onHide #(h/modal-close h-env)}
+               [(bs-modal-header #js {:closeButton true}
+                                 (bs-modal-title nil (dom/h4 #js {:key "new-board-save-h41"} title)))
+                (bs-modal-body nil modal-content)
+                (bs-modal-footer nil
+                                 [(close "Close")
+                                  (save "Save")])]))))
