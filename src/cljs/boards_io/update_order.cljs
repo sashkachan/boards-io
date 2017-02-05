@@ -81,39 +81,38 @@
              (reorder-columns dragged-column-id target-column-id :column/order max-order by-id)))))
 
 (defmethod update-order! :task-to-col
-  [state {:keys [dragged-task-id init-order target-column-id state]}]
-
-  (let [current-shadow (get-in state [:task/by-id dragged-task-id])
+  [state {:keys [dragged-task-id target-column-id]}]
+  (let [state' @state
+        current-shadow (get-in state' [:task/by-id dragged-task-id])
         current-shadow-column (get-in current-shadow [:task/column :db/id])
-        dragged-task-order (or (:task/order current-shadow) init-order)
-        dragged-task (get-in state [:task/by-id dragged-task-id])
-        target-col-tasks  (get-in state [:column/by-id target-column-id :task/_column])
+        dragged-task-order (:task/order current-shadow)
+        dragged-task (get-in state' [:task/by-id dragged-task-id])
+        target-col-tasks  (get-in state' [:column/by-id target-column-id :task/_column])
         new-shadow (-> dragged-task
                        (assoc-in [:task/column :db/id] target-column-id))]
-    (cond
+    (when
       (or (= target-column-id current-shadow-column)
           (= nil current-shadow-column))
-      (swap! state assoc-in [:task/by-id dragged-task-id] new-shadow)
-
-      (and
-       (not= nil current-shadow-column)
-       (not= target-column-id current-shadow-column))
+      (swap! state assoc-in [:task/by-id dragged-task-id] new-shadow) )
+    (when (and (not= nil current-shadow-column)
+               (not= target-column-id current-shadow-column))
       (swap! state assoc-in [:task/by-id dragged-task-id]
              (assoc-in new-shadow [:task/order]
                        (if (not= 0 (count target-col-tasks))
                          nil
-                         1)))
+                         1))))
+    
+    (when (not= nil current-shadow-column)
+      (swap! state update-in [:column/by-id current-shadow-column :task/_column]
+             (fn [c] (filterv #(not= [:task/by-id dragged-task-id] %) c))))
+    
 
-      (not= nil current-shadow-column)
-      (swap! state [:column/by-id current-shadow-column :task/_column]
-             (fn [c] (filterv #(not= [:task/by-id dragged-task-id] %) c)))
-
-      (not= nil target-column-id)
+    (when (not= nil target-column-id)
       (swap! state update-in [:column/by-id target-column-id :task/_column]
              conj [:task/by-id dragged-task-id]))))
 
 (defmethod update-order! :task-to-task
-  [state {:keys [dragged-task-id target-task-id direction state]}]
+  [state {:keys [dragged-task-id target-task-id direction]}]
   (let [current-shadow-column (get-in state [:task/by-id dragged-task-id :task/column :db/id])
         current-shadow-column-order (get-in state [:task/by-id dragged-task-id :task/order]) ]
     (cond

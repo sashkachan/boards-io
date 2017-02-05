@@ -49,8 +49,8 @@
       (map? current) (merge parsed))))
 
 (defmethod read :app/local-state
-  [{:keys [target state query parser] :as env} k _]
-  {:value (parser (assoc env :db-path [:app/local-state]) query)})
+  [env k _]
+  {:value (read-local-value (assoc env :db-path [k]))})
 
 (defmethod read :default
   [{:keys [target state query parser db-path] :as env} k _]
