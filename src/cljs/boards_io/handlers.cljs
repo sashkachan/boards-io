@@ -40,7 +40,7 @@
         column-id (:column-id extras)
         form (gdom/getElement "new-task-form")
         title (forms/getValueByName form "task-title")
-        max-order (apply max (map (fn [[_ task]] (:task/order task)) (get-in st [:route/data :columns :task/by-id])))
+        max-order (apply max (map (fn [[_ task]] (:task/order task)) (get-in st [:task/by-id])))
         order (if (nil? max-order) 1 (+ 1 max-order))]
     (om/transact! reconciler
                   (into [`(local/toggle-field! {:field ~save-btn-field :field-state :off})
@@ -55,7 +55,7 @@
         board-id (:board-id extras)
         form (gdom/getElement "new-column-form")
         title (forms/getValueByName form "column-title")
-        max-order (apply max (map (fn [[_ column]] (:column/order column)) (get-in st [:route/data :columns :column/by-id])))
+        max-order (apply max (map (fn [[_ column]] (:column/order column)) (get-in st [:column/by-id])))
         order (if (nil? max-order) 1 (+ 1 max-order))]
     (om/transact! reconciler
                   (into [`(local/toggle-field! {:field ~save-btn-field :field-state :off})
