@@ -48,6 +48,10 @@
     (cond-> current
       (map? current) (merge parsed))))
 
+(defmethod read :app/local-state
+  [{:keys [target state query parser] :as env} k _]
+  {:value (parser (assoc env :db-path [:app/local-state]) query)})
+
 (defmethod read :default
   [{:keys [target state query parser db-path] :as env} k _]
   (let [st @state
@@ -57,9 +61,7 @@
       (and (not= nil target) (not= nil query))
       (merge (get-query-root env'))
       (nil? target)
-      (assoc :value (read-local-value env'))
-      (= k :app/local-state)
-      (dissoc :remote))))
+      (assoc :value (read-local-value env')))))
 
 (defmethod read :route/data 
   [{:keys [target parser state query ast] :as env} k params]
@@ -91,8 +93,6 @@
   {:keys [:route/data]
    :action (fn []
              (swap! state assoc :route/data nil)
-             (swap! state dissoc :board/list)
-             (swap! state dissoc :column/list)
              (swap! state assoc :app/route route))})
 
 (defmethod mutate 'local/toggle-field!
@@ -101,39 +101,33 @@
         route (first (:app/route state'))]
     {:keys [:route/data]
      :action (fn []
-               (swap! state assoc-in [:route/data route :app/local-state field] {:state field-state})
-               (swap! state assoc-in [:route/data route :app/local-state :field-idents] {field ident}))}))
+               (swap! state assoc-in [:app/local-state field] {:state field-state})
+               (swap! state assoc-in [:app/local-state :field-idents] {field ident}))}))
 
 ; todo: include db-path (current route) in env
 (defmethod mutate 'local/update-order!
   [{:keys [state]} _ {:keys [target-column-id target-task-id extra]}]
   (let [st @state
         route (-> (get st :app/route) first)
-        column-dragging? (= :drag-start (get-in st [:route/data route :app/local-state :column/moving :state]))
-        task-dragging? (= :drag-start (get-in st [:route/data route :app/local-state :task/moving :state]))
-        dragged-column-id (get-in st [:route/data route :app/local-state :field-idents :column/moving :column-id])
-        dragged-task-id (get-in st [:route/data route :app/local-state :field-idents :task/moving :task-id]) ;
-        columns (get-in st [:route/data route :column/by-id])
-        tasks (get-in st [:route/data route :task/by-id])]
+        column-dragging? (= :drag-start (get-in st [:app/local-state :column/moving :state]))
+        task-dragging? (= :drag-start (get-in st [:app/local-state :task/moving :state]))
+        dragged-column-id (get-in st [:app/local-state :field-idents :column/moving :column-id])
+        dragged-task-id (get-in st [:app/local-state :field-idents :task/moving :task-id])]
     {:action
      (fn []
        (cond
          (and column-dragging? target-column-id (not= dragged-column-id target-column-id))
-         (swap! state assoc-in [:route/data route :column/by-id]
-                (uo/update-order {:dragged-column-id dragged-column-id
-                                  :target-column-id target-column-id
-                                  :column/by-id columns}))
+         (uo/update-order! state {:dragged-column-id dragged-column-id
+                                  :target-column-id target-column-id})
+         
          (and task-dragging? target-column-id)
-         (swap! state assoc-in [:route/data route]
-                (uo/update-order {:dragged-task-id dragged-task-id
-                                  :target-column-id target-column-id
-                                  :state (get-in st [:route/data route])}))
+         (uo/update-order! state {:dragged-task-id dragged-task-id
+                                  :target-column-id target-column-id})
+         
          (and task-dragging? target-task-id)
-         (swap! state assoc-in [:route/data route]
-                (uo/update-order {:dragged-task-id dragged-task-id
+         (uo/update-order! state {:dragged-task-id dragged-task-id
                                   :target-task-id target-task-id
-                                  :state (get-in st [:route/data route])
-                                  :direction (get-in extra [:direction])}))))}))
+                                  :direction (get-in extra [:direction])})))}))
 
 (defmethod mutate 'local/loading!
   [{:keys [state]} _ {:keys [loading-state]}]
