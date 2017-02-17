@@ -126,8 +126,7 @@
                                 :style style
                                 :draggable "true"
                                 :onDragStart (fn [e]
-                                               (let [img (doto (js/Image.) (aset "src" ""))
-                                                     _ (.setDragImage (.-dataTransfer e) img 0 0)]
+                                               (let [_ (.setDragImage (.-dataTransfer e) (doto (js/Image.) (aset "src" "")) 0 0)]
                                                  (if (and (= (-> task-over :state) :enter)
                                                           (not= nil (-> task-over :ident :id)))
                                                    (h/drag-start

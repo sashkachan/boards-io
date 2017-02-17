@@ -22,7 +22,11 @@
                  [figwheel-sidecar "0.5.9-SNAPSHOT"]
                  [com.cemerick/piggieback "0.2.1"]
                  [org.danielsz/system         "0.3.2-SNAPSHOT"]
-                 [hiccup "1.0.5"]]
+                 [hiccup "1.0.5"]
+                 [stuarth/clj-oauth2 "0.3.2"]
+                 [cheshire "5.7.0"]
+                 [clj-http "3.4.1"]]
+  
   :plugins [[lein-cljsbuild "1.1.5"]
             [lein-exec "0.3.6"]]
   :main boards-io.core
