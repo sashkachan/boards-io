@@ -42,8 +42,9 @@
 (defui Root
   static om/IQuery
   (query [this]
-         `[:app/route
-           ~(c/get-root-query)])
+         (into `[:app/route
+                 ~(c/get-root-query)]
+               (om/get-query c/AuthHeader)))
 
   Object
   (componentDidMount
@@ -51,11 +52,12 @@
    (nav/wire-up (nav/new-history) #(h/change-route! (assoc env :this this) %)))
 
   (render [this]
-          (let [{:keys [app/route route/data app/local-state]} (om/props this)
+          (let [{:keys [app/route route/data app/local-state oauth/user]} (om/props this)
                 pr (first route)
                 comp-data (if (not= nil pr)
                             (let [component ((c/route->factory pr) (get data pr))]
                               component))]
-            comp-data)))
+            (dom/div nil [((om/factory c/AuthHeader) {:oauth/user (:oauth/user (om/props this))})
+                          comp-data]))))
 
 (om/add-root! reconciler Root (js/document.getElementById "app"))

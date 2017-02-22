@@ -31,6 +31,16 @@
                    [ ?tid :task/name ]]
                  (d/db conn) (read-string board-id) query)}))
 
+(defmethod readf :oauth/user
+  [{:keys [conn query]} k params]
+  (let [{:keys [token]} params]
+    (println ":oauth/user " query  params token)
+    {:value (d/q '[:find [(pull ?uid q) ...]
+                   :in $ ?token q
+                   :where
+                   [?uid :user/token ?token]]
+                 (d/db conn) token query)}))
+
 
 
 ;; =============================================================================
@@ -86,3 +96,11 @@
      :action (fn []
                (if (not= nil columns)
                  @(d/transact conn columns)))})
+
+
+(defn save-token [{:keys [user_id email] :as token-data} token conn]
+  (println token-data token )
+  (d/transact conn `[{:db/id #db/id[:db.part/user]
+                      :user/email ~email
+                      :user/userid ~user_id
+                      :user/token ~token}]))

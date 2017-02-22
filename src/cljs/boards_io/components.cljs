@@ -212,19 +212,43 @@
                        :modal-content m/new-task-form
                        :extras (-> local-state :field-idents :column/new-task-modal)
                        :title "Create new task"}))))))
+(defui AuthHeader
+  static om/IQuery
+  (query [this]
+         [{:oauth/user [:user/email :user/userid :user/token]}])
 
+  Object
+  (render [this]
+          (let [{:keys [user/email user/userid user/token] :as lp} (get (om/props this) :oauth/user)]
+            (if token
+              (dom/div nil "Logged in as " email)
+              (dom/div nil
+                       (dom/a #js {:href "/oauth" :target "_self"} "Login with Google"))))))
 
-
+(defui Auth
+  static om/IQuery
+  (query [this]
+         [{:oauth/user [:user/email :user/userid :user/token]} :app/route])
+  Object
+  (componentWillMount [this]
+                      (let [{:keys [user/email user/userid user/token] :as lp} (first (get (om/props this) :oauth/user))]
+                        (if token
+                          (om/transact! this `[(local/store-user! ~lp)]))))
+  (render [this]
+          (println (om/props this))
+          (dom/div nil "Authenticated!")))
 
 
 (def route->component
   {:columns ColumnList
-   :boards  BoardList})
+   :boards  BoardList
+   :auth Auth})
 
 (def route->factory
   (zipmap (keys route->component)
           (map (fn [c] (om/factory c {:keyfn #(str (-> % keys first))})) (vals route->component))))
 
-(defn get-root-query []
+
+(defn get-root-query []  
   {:route/data (mapv hash-map (keys route->component)
                      (map om/get-query (vals route->component)))})

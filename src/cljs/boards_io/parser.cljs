@@ -4,7 +4,11 @@
    [goog.log :as glog]
    [boards-io.logger :as l]
    [boards-io.update-order :as uo]
-   [om.next.impl.parser :as parser]))
+   [om.next.impl.parser :as parser])
+  (:import [goog.net Cookies]))
+
+(def cookies (Cookies. js/document))
+(defn get-cookie [name] (.get cookies name))
 
 (defmulti read om/dispatch)
 (defmulti mutate om/dispatch)
@@ -15,6 +19,16 @@
         q [(om/ast->query ast)]]
     (when (not (empty? refs))
       (get (om/db->tree q refs state') key))))
+
+(defmethod read :oauth/user [{:keys [ast target route query state db-path] :as env} k params]
+  (let [st @state]
+    (cond-> {}
+      (nil? target)
+      (assoc :value (denorm-data-val k env))
+      (not= nil target)
+      (assoc target (-> ast
+                        (assoc :query-root true)
+                        (assoc :params {:token (get-cookie "authToken")}))))))
 
 (defmethod read :board/list [{:keys [ast target query state db-path] :as env} k _]
   (let [st @state]
@@ -42,6 +56,7 @@
                         res))})
 
 (defn read-local-value [{:keys [target state query parser db-path] :as env}]
+  (println db-path)
   (let [st @state
         parsed (parser env query)
         current (get-in st db-path)]
@@ -55,7 +70,7 @@
 (defmethod read :default
   [{:keys [target state query parser db-path] :as env} k _]
   (let [st @state
-        db-path' (conj db-path k)
+        db-path' (conj (or db-path []) k)
         env' (assoc env :db-path db-path' )]
     (cond-> {}
       (and (not= nil target) (not= nil query))
@@ -128,6 +143,11 @@
          (uo/update-order! state {:dragged-task-id dragged-task-id
                                   :target-task-id target-task-id
                                   :direction (get-in extra [:direction])})))}))
+
+(defmethod mutate 'local/store-user!
+  [{:keys [state]} _ {:keys [user/email user/userid user/token] :as d}]
+  {:action (fn []
+             (swap! state assoc :oauth/user d))})
 
 (defmethod mutate 'local/loading!
   [{:keys [state]} _ {:keys [loading-state]}]

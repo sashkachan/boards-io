@@ -8,6 +8,7 @@
             [ring.middleware.keyword-params :refer [wrap-keyword-params]]
             [ring.middleware.params :refer [wrap-params]]
             [ring.middleware.session :refer [wrap-session]]
+            [ring.middleware.cookies :refer [wrap-cookies]]
             [clj-http.client :as http]
             [bidi.bidi :as bidi]
             [cheshire.core :refer [parse-string]]
@@ -30,7 +31,7 @@
 (def google-com-oauth2
   (merge {:authorization-uri (str login-uri  "/o/oauth2/auth")
           :access-token-uri (str login-uri "/o/oauth2/token")
-          :redirect-uri (get (System/getenv) "REDIRECT_URI" "http://localhost:9091/authentication/callback") 
+          :redirect-uri (get (System/getenv) "REDIRECT_URI" "http://localhost:9091/auth") 
           :client-id (get (System/getenv) "CLIENT_ID" "")
           :client-secret (get (System/getenv ) "CLIENT_SECRET" "")
           :access-query-param :access_token
@@ -81,7 +82,7 @@
 (def routes
   ["" {"/oauth" :oauth
        "/api" :api
-       "/authentication/callback" :oauth-callback
+       "/auth" :oauth-callback
        #".*" :index}])
 
 
@@ -101,17 +102,22 @@
                                    google-com-oauth2
                                    (:params req)
                                    (auth-req))
+                            _ (println "token info back " token)
                             token-info (:body (http/get "https://www.googleapis.com/oauth2/v1/tokeninfo"
                                                         {:query-params {:access_token (:access-token token)}
                                                          :as :json}))
-                            ]
-                        {:status 200
-                         :body token-info})
+                            _ (parser/save-token token-info (:access-token token) (:datomic-connection req))
+                            resp (merge (index req)
+                                        {:cookies {"authToken" {:value (:access-token token)
+                                                                 :max-age (:expires_in (:params token))}}})
+                            _ (println resp)]
+                        resp)
       :oauth (redirect (:uri (auth-req)))
       req)))
 
 (defn top-handler [conn]
   (-> handler
+      wrap-cookies
       wrap-session
       wrap-keyword-params
       wrap-params
