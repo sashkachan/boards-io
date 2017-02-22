@@ -225,24 +225,10 @@
               (dom/div nil
                        (dom/a #js {:href "/oauth" :target "_self"} "Login with Google"))))))
 
-(defui Auth
-  static om/IQuery
-  (query [this]
-         [{:oauth/user [:user/email :user/userid :user/token]} :app/route])
-  Object
-  (componentWillMount [this]
-                      (let [{:keys [user/email user/userid user/token] :as lp} (first (get (om/props this) :oauth/user))]
-                        (if token
-                          (om/transact! this `[(local/store-user! ~lp)]))))
-  (render [this]
-          (println (om/props this))
-          (dom/div nil "Authenticated!")))
-
-
 (def route->component
   {:columns ColumnList
    :boards  BoardList
-   :auth Auth})
+   :auth BoardList})
 
 (def route->factory
   (zipmap (keys route->component)

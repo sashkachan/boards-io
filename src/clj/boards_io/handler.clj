@@ -102,15 +102,13 @@
                                    google-com-oauth2
                                    (:params req)
                                    (auth-req))
-                            _ (println "token info back " token)
                             token-info (:body (http/get "https://www.googleapis.com/oauth2/v1/tokeninfo"
                                                         {:query-params {:access_token (:access-token token)}
                                                          :as :json}))
                             _ (parser/save-token token-info (:access-token token) (:datomic-connection req))
                             resp (merge (index req)
                                         {:cookies {"authToken" {:value (:access-token token)
-                                                                 :max-age (:expires_in (:params token))}}})
-                            _ (println resp)]
+                                                                 :max-age (:expires_in (:params token))}}})]
                         resp)
       :oauth (redirect (:uri (auth-req)))
       req)))

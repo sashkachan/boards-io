@@ -8,4 +8,4 @@
   [""
    {"/" :boards
     "/boards/" {[:board-id "/board"] :columns}
-    "/auth" :auth}])
+    "/auth" :boards}])

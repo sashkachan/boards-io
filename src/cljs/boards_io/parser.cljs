@@ -56,7 +56,6 @@
                         res))})
 
 (defn read-local-value [{:keys [target state query parser db-path] :as env}]
-  (println db-path)
   (let [st @state
         parsed (parser env query)
         current (get-in st db-path)]
@@ -143,11 +142,6 @@
          (uo/update-order! state {:dragged-task-id dragged-task-id
                                   :target-task-id target-task-id
                                   :direction (get-in extra [:direction])})))}))
-
-(defmethod mutate 'local/store-user!
-  [{:keys [state]} _ {:keys [user/email user/userid user/token] :as d}]
-  {:action (fn []
-             (swap! state assoc :oauth/user d))})
 
 (defmethod mutate 'local/loading!
   [{:keys [state]} _ {:keys [loading-state]}]
