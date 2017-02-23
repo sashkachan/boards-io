@@ -21,14 +21,15 @@
       (get (om/db->tree q refs state') key))))
 
 (defmethod read :oauth/user [{:keys [ast target route query state db-path] :as env} k params]
-  (let [st @state]
+  (let [st @state
+        token (get-cookie "authToken")]
     (cond-> {}
       (nil? target)
       (assoc :value (denorm-data-val k env))
       (not= nil target)
       (assoc target (-> ast
                         (assoc :query-root true)
-                        (assoc :params {:token (get-cookie "authToken")}))))))
+                        (assoc :params {:token token}))))))
 
 (defmethod read :board/list [{:keys [ast target query state db-path] :as env} k _]
   (let [st @state]

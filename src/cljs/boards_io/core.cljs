@@ -57,7 +57,9 @@
                 comp-data (if (not= nil pr)
                             (let [component ((c/route->factory pr) (get data pr))]
                               component))]
-            (dom/div nil [((om/factory c/AuthHeader) {:oauth/user (:oauth/user (om/props this))})
-                          comp-data]))))
+            (dom/div nil [((om/factory c/Header {:keyfn identity}) {:oauth/user (:oauth/user (om/props this))} )
+                          (dom/div #js {:key "route-container" :className "container-fluid"}
+                                   comp-data)
+                          ]))))
 
 (om/add-root! reconciler Root (js/document.getElementById "app"))

@@ -212,6 +212,7 @@
                        :modal-content m/new-task-form
                        :extras (-> local-state :field-idents :column/new-task-modal)
                        :title "Create new task"}))))))
+
 (defui AuthHeader
   static om/IQuery
   (query [this]
@@ -224,6 +225,21 @@
               (dom/div nil "Logged in as " email)
               (dom/div nil
                        (dom/a #js {:href "/oauth" :target "_self"} "Login with Google"))))))
+
+
+(defui Header
+  Object
+  (render
+   [this]
+   (dom/nav #js {:className "navbar navbar-default" :id "header"}
+            (dom/div #js {:className "container-fluid"}
+                     [(dom/div #js {:className "navbar-header" :key "navbar-head"}
+                               (dom/a #js {:className "navbar-brand" :href "/"} "Boards.io"))
+                      (dom/div #js {:className  "collapse navbar-collapse" :key "navbar-collapse"}
+                               (dom/ul #js {:key "navbar-nb" :className "nav navbar-nav"}
+                                       (dom/li #js {:id "boards-list"} 
+                                               (dom/a #js {:href "#"} "Boards"))))
+                      ((om/factory AuthHeader {:keyfn identity}) (om/props this) )]))))
 
 (def route->component
   {:columns ColumnList

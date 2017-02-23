@@ -35,12 +35,13 @@
   [{:keys [conn query]} k params]
   (let [{:keys [token]} params]
     (println ":oauth/user " query  params token)
-    {:value (first
-             (d/q '[:find [(pull ?uid q) ...]
-                    :in $ ?token q
-                    :where
-                    [?uid :user/token ?token]]
-                  (d/db conn) token query))}))
+    {:value (if token
+              (first
+               (d/q '[:find [(pull ?uid q) ...]
+                      :in $ ?token q
+                      :where
+                      [?uid :user/token ?token]]
+                    (d/db conn) token query)))}))
 
 
 

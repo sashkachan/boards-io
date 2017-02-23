@@ -62,17 +62,16 @@
                 :save-btn-field :board/save-btn-field
                 :ref ref
                 :extras extras}
-         close (fn [b] (bs-button #js {:onClick #(h/modal-close h-env)} b))
-         save-stngs (-> (cond-> {:bsStyle "primary"
-                                 :onClick #(submit-fn h-env)
-                                 :key "mod-btn2"}
-                          (= :off save-btn-state) (assoc :disabled "disabled"))
-                        clj->js)
-         save (fn [b] (bs-button save-stngs b))]
+         close (fn [b] (bs-button #js {:key "mdl-close" :onClick #(h/modal-close h-env)} b))
+         save-stngs (cond-> {:bsStyle "primary"
+                             :onClick #(submit-fn h-env)
+                             :key "mod-btn2"}
+                      (= :off save-btn-state) (assoc :disabled "disabled"))
+         save (fn [b] (bs-button (clj->js save-stngs) b))]
      (bs-modal #js {:show show :onHide #(h/modal-close h-env)}
-               [(bs-modal-header #js {:closeButton true}
+               [(bs-modal-header #js {:closeButton true :key "modal-header"}
                                  (bs-modal-title nil (dom/h4 #js {:key "new-board-save-h41"} title)))
-                (bs-modal-body nil modal-content)
-                (bs-modal-footer nil
+                (bs-modal-body #js {:key "modal-body"} modal-content)
+                (bs-modal-footer #js {:key "modal-footer"}
                                  [(close "Close")
                                   (save "Save")])]))))
