@@ -87,7 +87,7 @@
         current-shadow-column (get-in current-shadow [:task/column :db/id])
         dragged-task-order (:task/order current-shadow)
         dragged-task (get-in state' [:task/by-id dragged-task-id])
-        target-col-tasks  (get-in state' [:column/by-id target-column-id :task/_column])
+        target-col-tasks  (get-in state' [:column/by-id target-column-id :column/tasks])
         new-shadow (-> dragged-task
                        (assoc-in [:task/column :db/id] target-column-id))]
     (when
@@ -103,12 +103,12 @@
                          1))))
     
     (when (not= nil current-shadow-column)
-      (swap! state update-in [:column/by-id current-shadow-column :task/_column]
+      (swap! state update-in [:column/by-id current-shadow-column :column/tasks]
              (fn [c] (filterv #(not= [:task/by-id dragged-task-id] %) c))))
     
 
     (when (not= nil target-column-id)
-      (swap! state update-in [:column/by-id target-column-id :task/_column]
+      (swap! state update-in [:column/by-id target-column-id :column/tasks]
              conj [:task/by-id dragged-task-id]))))
 
 (defmethod update-order! :task-to-task

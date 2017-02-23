@@ -76,6 +76,15 @@
      :db/fulltext true
      :db/doc "A column order"
      :db.install/_attribute :db.part/db}
+
+    {:db/id #db/id[:db.part/db]
+     :db/ident :column/tasks
+     :db/valueType :db.type/ref
+     :db/cardinality :db.cardinality/many
+     :db/fulltext true
+     :db/unique :db.unique/identity
+     :db/doc "A column tasks"
+     :db.install/_attribute :db.part/db}
     
     ;; task
     {:db/id #db/id[:db.part/db]

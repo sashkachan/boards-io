@@ -71,10 +71,12 @@
   (println " -- save/new-task! " env params)
   {:value {:keys '[:column/list]}
    :action (fn []
-             @(d/transact conn `[{:db/id #db/id[:db.part/user]
-                                  :task/name ~title
-                                  :task/order ~order
-                                  :task/column ~column-id}]))}
+             @(d/transact conn `[{:db/id ~column-id
+                                  :column/tasks
+                                  [{:db/id #db/id[:db.part/user]
+                                     :task/name ~title
+                                     :task/order ~order
+                                     :task/column ~column-id}]}]))}
   
   )
 

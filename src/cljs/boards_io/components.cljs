@@ -107,7 +107,7 @@
   static om/IQuery
   (query [this]
          `[:db/id :column/name :column/order {:column/board ~(om/get-query BoardItem)}
-          {:task/_column ~(om/get-query ColumnTask)}])
+          {:column/tasks ~(om/get-query ColumnTask)}])
   
 
   Object
@@ -146,7 +146,7 @@
             (dom/div (clj->js js-map) 
                      [(dom/div #js {:className "board-column-title" :key (str "item-title-" column-id)} (str (:column/name (om/props this))))
                       (dom/div #js {:className "board-column-tasks" :key (str "board-column-tasks-" column-id)}
-                               (mapv column-task (:task/_column (om/props this))))
+                               (mapv column-task (:column/tasks (om/props this))))
                       (dom/div #js {:className "board-column-new-item" :key (str "new-item-div-" column-id)}
                                (dom/a #js {:href "#" :onClick #(h/modal-open {:reconciler (om/get-reconciler this) :ref :column/new-task-modal :ident {:column-id (:db/id (om/props this))}} )} "New item..." ))]))))
 

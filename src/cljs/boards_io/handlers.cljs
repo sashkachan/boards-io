@@ -70,24 +70,25 @@
 
 (defn drag-end-task [{:keys [reconciler component ident] :as env}]
   (let [st @reconciler
-        cols (get-in st [:column/by-id])
+        columns (get-in st [:column/by-id])
         moving-task (get-in st [:app/local-state :field-idents :task/moving])
-        new-tasks (reduce
-                   (fn [inv [cid col]]
-                     (into inv
-                           (mapv
-                              (fn [ident]
-                                (assoc-in (get-in st ident) [:task/column :db/id] cid))
-                              (:task/_column col)))) [] cols)]
+        new-columns (into []
+                          (map (fn [[cid column]]
+                                 {:db/id cid
+                                  :column/tasks
+                                  (mapv (fn [id] (get-in st id)) (:column/tasks column))}) columns))]
+    
     (om/transact! reconciler
                   `[(local/toggle-field! {:field :task/moving :field-state :drag-end :ident ~moving-task})
-                    (save/update-order-tasks! {:tasks ~new-tasks })])))
+                    (save/update-order-columns! {:columns ~new-columns })])))
 
 (defn drag-end-column [{:keys [reconciler component ident columns] :as env}]
   (let [st @reconciler
         columns (get-in st [:column/by-id])
-        new-cols (into [] (map (fn [[cid column]] {:db/id cid
-                                                  :column/order (:column/order column)}) columns))]
+        new-cols (into [] (map
+                           (fn [[cid column]]
+                             {:db/id cid
+                              :column/order (:column/order column)}) columns))]
     (om/transact! reconciler
                   `[(local/toggle-field! {:field :column/moving :field-state :drag-end :ident ~ident})
  
