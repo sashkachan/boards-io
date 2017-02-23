@@ -14,6 +14,7 @@
      :db/ident :user/token
      :db/valueType :db.type/string
      :db/cardinality :db.cardinality/one
+     :db/unique :db.unique/identity
      :db/fulltext true
      :db/doc "Active token code"
      :db.install/_attribute :db.part/db}
@@ -22,6 +23,7 @@
      :db/ident :user/userid
      :db/valueType :db.type/string
      :db/cardinality :db.cardinality/one
+     :db/unique :db.unique/identity
      :db/fulltext true
      :db/doc "User id"
      :db.install/_attribute :db.part/db}

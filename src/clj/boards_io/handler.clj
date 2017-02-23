@@ -69,8 +69,11 @@
 
 (defn api [req route-params]
   (let [parser (om/parser {:read parser/readf :mutate parser/mutatef})
+        _ (println "transit-params; " (:transit-params req))
         data (parser
-              {:conn (:datomic-connection req) :route-params route-params} (:transit-params req))
+              {:auth-token (get-in req [:cookies "authToken" :value])
+               :conn (:datomic-connection req)
+               :route-params route-params} (:transit-params req))
         data' (walk/postwalk (fn [x]
                                (if (and (sequential? x) (= :result (first x)))
                                  [(first x) (dissoc (second x) :db-before :db-after :tx-data)]

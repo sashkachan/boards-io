@@ -13,28 +13,33 @@
   {:value {:error (str "No handler for read key " k)}})
 
 (defmethod readf :board/list
-  [{:keys [conn query]} k _]
+  [{:keys [auth-token conn query auth-token]} k _]
+  (println "baord/list uid " auth-token)
   (let [resp (d/q '[:find [(pull ?eid q) ...]
-                    :in $ q
-                    :where [ ?eid :board/name] ] (d/db conn) query)]   
+                    :in $ q ?token
+                    :where
+                    [ ?eid :board/name]
+                    [ ?eid :board/user ?uid]
+                    [ ?uid :user/token ?token]] (d/db conn) query auth-token)]
     {:value resp}))
 
 (defmethod readf :column/list
-  [{:keys [conn query]} k params]
+  [{:keys [conn query auth-token]} k params]
   (let [{:keys [board-id]} params]
-    (println ":column/list " query  params board-id)
     {:value (d/q '[:find [(pull ?cid q) ...]
-                   :in $ ?bid q
+                   :in $ ?bid q ?token
                    :where
                    [ ?cid :column/name]
                    [ ?cid :column/board ?bid]
-                   [ ?tid :task/name ]]
-                 (d/db conn) (read-string board-id) query)}))
+                   [ ?bid :board/user ?uid]
+                   [ ?uid :user/token ?token]
+                   ;[ ?tid :task/name ]
+                   ]
+                 (d/db conn) (read-string board-id) query auth-token)}))
 
 (defmethod readf :oauth/user
   [{:keys [conn query]} k params]
   (let [{:keys [token]} params]
-    (println ":oauth/user " query  params token)
     {:value (if token
               (first
                (d/q '[:find [(pull ?uid q) ...]
@@ -51,14 +56,14 @@
 (defmulti mutatef (fn [env k params] k))
 
 (defmethod mutatef 'save/new-board!
-  [{:keys [conn] :as env} k {:keys [title description] :as params}]
-  (println " -- save/new-board! " env params)
-  
+  [{:keys [conn auth-token] :as env} k {:keys [title description] :as params}]
   {:value {:keys '[:board/list]}
    :action (fn []
               @(d/transact conn `[{:db/id #db/id[:db.part/user]
                                    :board/name ~title
-                                   :board/description ~description}]))
+                                   :board/description ~description
+                                   :board/user [:user/token ~auth-token]
+                                   }]))
    })
 
 (defmethod mutatef 'save/new-task!
@@ -74,13 +79,14 @@
   )
 
 (defmethod mutatef 'save/new-column!
-  [{:keys [conn] :as env} k {:keys [title board-id order] :as params}]
+  [{:keys [conn auth-token] :as env} k {:keys [title board-id order] :as params}]
   (println " -- save/new-column! " env params)
   {:value {:keys '[:column/list]}
    :action (fn []
              @(d/transact conn `[{:db/id #db/id[:db.part/user]
                                   :column/name ~title
                                   :column/board ~board-id
+                                  :board/user [:user/token ~auth-token]
                                   :column/order ~order}]))})
 
 (defmethod mutatef 'save/update-order-tasks!
