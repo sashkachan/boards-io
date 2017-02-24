@@ -16,20 +16,22 @@
 (def parser (om/parser {:read parser/readf :mutate parser/mutatef}))
 
 
-(parser/save-token {:user_id "123" :email "hello@example.com" } token (-> s/system :db :connection))
+#_(parser/save-token {:user_id "123" :email "hello@example.com" } token (-> s/system :db :connection))
 
-(parser
+#_(parser
  {:auth-token token
   :conn (-> s/system :db :connection)}
  '[{:board/list [:db/id :board/name :board/description]}])
 
-(parser
+#_(parser
  {:auth-token token
   :conn (-> s/system :db :connection)}
  '[(save/new-board! {:title "Title" :description "Description"})])
 
-(parser
+#_(parser
  {:auth-token token
   :conn (-> s/system :db :connection)}
  '[(save/new-column! {:title "Title" :order 2 :board-id 17592186045427})])
 
+
+#_(pp/pprint (d/q '[:find [(pull ?cid [:column/name :column/board {:column/tasks [:task/name :task/order :db/id]}])] :where [?cid :column/name]] (d/db conn)))

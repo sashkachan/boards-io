@@ -107,50 +107,56 @@
 
 
 
-(def initial-data [] #_'[{:db/id #db/id[:db.part/user]
-                          :board/name "Work"
-                          :board/description "Work board"}
+(def initial-data [{:db/id #db/id[:db.part/user -987]
+                    :user/email "test@123.abc"
+                    :user/userid "123"
+                    :user/token "yada-yada-token"}
+                   
+                   {:db/id #db/id[:db.part/user]
+                    :board/name "Work"
+                    :board/user #db/id[:db.part/user -987]
+                    :board/description "Work board"}
                     
-                         {:db/id #db/id[:db.part/user -100001]
-                          :board/name "Personal"
-                          :board/description "Personal board"}
+                   {:db/id #db/id[:db.part/user -100001]
+                    :board/name "Personal"
+                    :board/user #db/id[:db.part/user -987]
+                    :board/description "Personal board"}
 
-                         {:db/id #db/id[:db.part/user -20001]
-                          :column/board #db/id[:db.part/user -100001]
-                          :column/name "To-Doskis"
-                          :column/order 2}
+                   {:db/id #db/id[:db.part/user -20001]
+                    :column/board #db/id[:db.part/user -100001]
+                    :column/name "To-Doskis"
+                    :column/order 2}
 
-                         {:db/id #db/id[:db.part/user -20002]
-                          :column/board #db/id[:db.part/user -100001]
-                          :column/name "Doing"
-                          :column/order 3}
+                   {:db/id #db/id[:db.part/user -20002]
+                    :column/board #db/id[:db.part/user -100001]
+                    :column/name "Doing"
+                    :column/order 3}
                     
-                         {:db/id #db/id[:db.part/user]
-                          :column/board #db/id[:db.part/user -100001]
-                          :column/name "Backlog"
-                          :column/order 4}
+                   {:db/id #db/id[:db.part/user]
+                    :column/board #db/id[:db.part/user -100001]
+                    :column/name "Backlog"
+                    :column/tasks [#db/id[:db.part/user -555]]
+                    :column/order 4}
 
-                         {:db/id #db/id[:db.part/user]
-                          :column/board #db/id[:db.part/user -100001]
-                          :column/name "Archived"
-                          :column/order 5}
+                   {:db/id #db/id[:db.part/user]
+                    :column/board #db/id[:db.part/user -100001]
+                    :column/name "Archived"
+                    :column/tasks [#db/id[:db.part/user -666] #db/id[:db.part/user -777]]
+                    :column/order 5}
 
-                         {:db/id #db/id[:db.part/user]
-                          :task/name "Do the laundry"
-                          :task/order 1
-                          :task/column #db/id[:db.part/user -20001]
-                          }
+                   {:db/id #db/id[:db.part/user -555]
+                    :task/name "Do the laundry"
+                    :task/order 1
+                    }
 
-                         {:db/id #db/id[:db.part/user]
-                          :task/name "Take a shower"
-                          :task/order 2
-                          :task/column #db/id[:db.part/user -20001]
-                          }
+                   {:db/id #db/id[:db.part/user -777]
+                    :task/name "Take a shower"
+                    :task/order 2
+                    }
 
-                         {:db/id #db/id[:db.part/user]
-                          :task/name "Do some work"
-                          :task/order 1
-                          :task/column #db/id[:db.part/user -20002]
-                          }
+                   {:db/id #db/id[:db.part/user -666]
+                    :task/name "Do some work"
+                    :task/order 1
+                    }
                     
-                         ])
+                   ])

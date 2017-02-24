@@ -3,6 +3,7 @@
             [goog.dom :as gdom]
             [goog.log :as glog]
             [boards-io.logger :as l]
+            [boards-io.update-order :as uo]
             [goog.dom.forms :as forms]))
 
 (declare start-loading)
@@ -70,17 +71,9 @@
 
 (defn drag-end-task [{:keys [reconciler component ident] :as env}]
   (let [st @reconciler
-        columns (get-in st [:column/by-id])
-        moving-task (get-in st [:app/local-state :field-idents :task/moving])
-        new-columns (into []
-                          (map (fn [[cid column]]
-                                 {:db/id cid
-                                  :column/tasks
-                                  (mapv (fn [id] (get-in st id)) (:column/tasks column))}) columns))]
-    
+        moving-task (get-in st [:app/local-state :field-idents :task/moving])]
     (om/transact! reconciler
-                  `[(local/toggle-field! {:field :task/moving :field-state :drag-end :ident ~moving-task})
-                    (save/update-order-columns! {:columns ~new-columns })])))
+                  `[(local/toggle-field! {:field :task/moving :field-state :drag-end :ident ~moving-task})])))
 
 (defn drag-end-column [{:keys [reconciler component ident columns] :as env}]
   (let [st @reconciler
@@ -96,9 +89,18 @@
 )))
 
 (defn update-order [{:keys [reconciler component entity entity-id extra]}]
-  (om/transact! reconciler
-                (into `[(local/update-order! {~entity ~entity-id :extra ~extra})]
-                      #_(om/transform-reads reconciler [:route/data]))))
+  (let [st @reconciler
+        task-dragging? (= :drag-start (get-in st [:app/local-state :task/moving :state]))       
+        dragged-task-id (get-in st [:app/local-state :field-idents :task/moving :task-id])
+        dragged-task-column (uo/taskid->columnid st dragged-task-id)]
+    (om/transact! reconciler
+                  (cond-> `[(local/update-order! {~entity ~entity-id :extra ~extra})]
+                    (and (not= nil dragged-task-column)
+                         task-dragging?
+                         (= entity :target-column-id)
+                         (not= dragged-task-column entity-id))
+                    (into `[(save/remove-column-task! {:cid ~dragged-task-column :tid ~dragged-task-id})
+                            (save/add-column-task! {:cid ~entity-id :tid ~dragged-task-id})])))))
 
 (defn start-loading [{:keys [reconciler]}]
   (let [st @reconciler]

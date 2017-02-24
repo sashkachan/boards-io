@@ -100,13 +100,13 @@
 (defmethod mutatef 'save/remove-column-task!
   [{:keys [conn] :as env} k {:keys [cid tid] :as params}]
   {:action (fn []
-             @(d/transact conn [:db/retract (read-string cid) :column/tasks (read-string tid)]))})
+             @(d/transact conn [[:db/retract cid :column/tasks tid]]))})
 
 
 (defmethod mutatef 'save/add-column-task!
   [{:keys [conn] :as env} k {:keys [cid tid] :as params}]
   {:action (fn []
-             @(d/transact conn [:db/add (read-string cid) :column/tasks (read-string tid)]))})
+             @(d/transact conn [[:db/add cid :column/tasks tid]]))})
 
 (defmethod mutatef 'save/update-order-columns!
   [{:keys [conn] :as env} k {:keys [columns] :as params}]

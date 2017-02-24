@@ -55,7 +55,6 @@
 ;;;;;;;;;;;;;;;; HANDLERS
 
 (defn index [req]
-  (println "serving index")
   (if-let [resp (resource-response (str (:uri req)) {:root "public"})]
     resp
     {:status 200
@@ -69,11 +68,13 @@
 
 (defn api [req route-params]
   (let [parser (om/parser {:read parser/readf :mutate parser/mutatef})
-        _ (println "transit-params; " (:transit-params req))
-        data (parser
-              {:auth-token (get-in req [:cookies "authToken" :value])
-               :conn (:datomic-connection req)
-               :route-params route-params} (:transit-params req))
+        data (try (parser
+                   {:auth-token (get-in req [:cookies "authToken" :value])
+                    :conn (:datomic-connection req)
+                    :route-params route-params} (:transit-params req))
+                  (catch Exception e
+                    (do (println (.getMessage e ))
+                        (.getMessage e))))
         data' (walk/postwalk (fn [x]
                                (if (and (sequential? x) (= :result (first x)))
                                  [(first x) (dissoc (second x) :db-before :db-after :tx-data)]
