@@ -103,13 +103,7 @@
      :db/doc "A task order"
      :db.install/_attribute :db.part/db}
     
-    {:db/id #db/id[:db.part/db]
-     :db/ident :task/column
-     :db/valueType :db.type/ref
-     :db/cardinality :db.cardinality/one
-     :db/fulltext true
-     :db/doc "A task column"
-     :db.install/_attribute :db.part/db}])
+])
 
 
 

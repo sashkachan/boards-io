@@ -71,12 +71,10 @@
   (println " -- save/new-task! " env params)
   {:value {:keys '[:column/list]}
    :action (fn []
-             @(d/transact conn `[{:db/id ~column-id
-                                  :column/tasks
-                                  [{:db/id #db/id[:db.part/user]
-                                     :task/name ~title
-                                     :task/order ~order
-                                     :task/column ~column-id}]}]))}
+             @(d/transact conn `[{:db/id #db/id[:db.part/user -10001]
+                                  :task/name ~title
+                                  :task/order ~order}
+                                 [:db/add ~column-id :column/tasks #db/id[:db.part/user -10001]]]))}
   
   )
 
@@ -98,6 +96,17 @@
      :action (fn []
                (if (not= nil tasks)
                  @(d/transact conn tasks)))})
+
+(defmethod mutatef 'save/remove-column-task!
+  [{:keys [conn] :as env} k {:keys [cid tid] :as params}]
+  {:action (fn []
+             @(d/transact conn [:db/retract (read-string cid) :column/tasks (read-string tid)]))})
+
+
+(defmethod mutatef 'save/add-column-task!
+  [{:keys [conn] :as env} k {:keys [cid tid] :as params}]
+  {:action (fn []
+             @(d/transact conn [:db/add (read-string cid) :column/tasks (read-string tid)]))})
 
 (defmethod mutatef 'save/update-order-columns!
   [{:keys [conn] :as env} k {:keys [columns] :as params}]

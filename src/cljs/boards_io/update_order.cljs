@@ -1,5 +1,15 @@
 (ns boards-io.update-order)
 
+(defn coltasks->map [st]
+  (map (fn [[cid col]]
+         (assoc col :column/tasks
+                (into {}
+                      (map (fn [[_ tid]] [tid cid]) (:column/tasks col)))))
+       (get-in st [:column/by-id])))
+
+(defn taskid->columnid [st task-id]
+  (some (fn [c] (some-> c :column/tasks (get task-id))) (coltasks->map st)))
+
 (defn reorder-columns [dragged-entity-id target-entity-id entity-order-key max-entity-order by-id]
   (let [dragged-entity-order (get-in by-id [dragged-entity-id entity-order-key])
         target-entity-order (get-in by-id [target-entity-id entity-order-key])
@@ -84,11 +94,11 @@
   [state {:keys [dragged-task-id target-column-id]}]
   (let [state' @state
         current-shadow (get-in state' [:task/by-id dragged-task-id])
-        current-shadow-column (get-in current-shadow [:task/column :db/id])
+        current-shadow-column (taskid->columnid state' dragged-task-id)
         dragged-task-order (:task/order current-shadow)
         dragged-task (get-in state' [:task/by-id dragged-task-id])
         target-col-tasks  (get-in state' [:column/by-id target-column-id :column/tasks])
-        new-shadow (-> dragged-task
+        new-shadow current-shadow #_(-> dragged-task
                        (assoc-in [:task/column :db/id] target-column-id))]
     (when
       (or (= target-column-id current-shadow-column)
@@ -113,10 +123,13 @@
 
 (defmethod update-order! :task-to-task
   [state {:keys [dragged-task-id target-task-id direction]}]
-  (let [current-shadow-column (get-in state [:task/by-id dragged-task-id :task/column :db/id])
+  (let [state' @state
+        current-shadow-column (taskid->columnid state' dragged-task-id)
         current-shadow-column-order (get-in state [:task/by-id dragged-task-id :task/order]) ]
     (cond
       (not= dragged-task-id target-task-id)
       (swap! state
              assoc-in [:task/by-id]
              (reorder-tasks dragged-task-id target-task-id :task/order (:task/by-id @state) direction)))))
+
+

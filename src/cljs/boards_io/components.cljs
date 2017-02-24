@@ -62,7 +62,7 @@
          [:task/by-id (:db/id item)])
   static om/IQuery
   (query [this]
-         [:db/id :task/column :task/name :task/order])
+         [:db/id :task/name :task/order])
   Object
   (componentWillUnmount [this])
   
@@ -236,7 +236,7 @@
                      [(dom/div #js {:className "navbar-header" :key "navbar-head"}
                                (dom/a #js {:className "navbar-brand" :href "/"} "Boards.io"))
                       (dom/div #js {:className  "collapse navbar-collapse" :key "navbar-collapse"}
-                               (dom/ul #js {:key "navbar-nb" :className "nav navbar-nav"}
+                               (dom/ul #js {:className "nav navbar-nav"}
                                        (dom/li #js {:id "boards-list"} 
                                                (dom/a #js {:href "#"} "Boards"))))
                       ((om/factory AuthHeader {:keyfn identity}) (om/props this) )]))))
