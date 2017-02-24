@@ -222,7 +222,7 @@
   (render [this]
           (let [{:keys [user/email user/userid user/token] :as lp} (get (om/props this) :oauth/user)]
             (if token
-              (dom/div nil "Logged in as " email)
+              (dom/div nil email)
               (dom/div nil
                        (dom/a #js {:href "/oauth" :target "_self"} "Login with Google"))))))
 
@@ -233,13 +233,15 @@
    [this]
    (dom/nav #js {:className "navbar navbar-default" :id "header"}
             (dom/div #js {:className "container-fluid"}
-                     [(dom/div #js {:className "navbar-header" :key "navbar-head"}
-                               (dom/a #js {:className "navbar-brand" :href "/"} "Boards.io"))
-                      (dom/div #js {:className  "collapse navbar-collapse" :key "navbar-collapse"}
-                               (dom/ul #js {:className "nav navbar-nav"}
-                                       (dom/li #js {:id "boards-list"} 
-                                               (dom/a #js {:href "#"} "Boards"))))
-                      ((om/factory AuthHeader {:keyfn identity}) (om/props this) )]))))
+                     [(dom/div #js {:className "col-md-10" :key "nav-col-10"}
+                               [(dom/div #js {:className "navbar-header" :key "navbar-head"}
+                                         (dom/a #js {:className "navbar-brand" :href "/"} "Boards.io"))
+                                (dom/div #js {:className  "collapse navbar-collapse" :key "navbar-collapse"}
+                                                                    (dom/ul #js {:className "nav navbar-nav"}
+                                                                            (dom/li #js {:id "boards-list"} 
+                                                                                    (dom/a #js {:href "#"} "Boards"))))])
+                      (dom/div #js {:className "col-md-2" :key "col-md-2"} 
+                               ((om/factory AuthHeader {:keyfn identity}) (om/props this) ))]))))
 
 (def route->component
   {:columns ColumnList
