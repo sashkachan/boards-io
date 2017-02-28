@@ -22,6 +22,8 @@
 
 (enable-console-print!)
 
+(goog-define API "http://localhost:9091")
+
 (defonce state {:app/route []})
 
 (def reconciler
@@ -30,9 +32,7 @@
     :parser (om/parser {:read parser/read :mutate parser/mutate})
     :normalize true
     :id-key :db/id
-    ;:logger 
-    ;:merge  (parser/merger c/route->component)
-    :send (transit/transit-post "/api")}))
+    :send (transit/transit-post (str js/boards-io.core.API "/api"))}))
 
 (def env {:reconciler reconciler
           :matcher (partial b/match-route router/router)
