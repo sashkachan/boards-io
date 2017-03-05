@@ -2,6 +2,7 @@
   (:require [ring.util.response :refer [response file-response resource-response redirect]]
             [clojure.edn :as edn]   
             [ring.middleware.resource :refer [wrap-resource]]
+            [puppetlabs.ring-middleware.core :refer [wrap-proxy]]
             [bidi.bidi :as bidi]
             [boards-io.html :as html]
             [clojure.java.io :as io]))
@@ -11,28 +12,17 @@
 (def ext-config (edn/read-string (slurp (io/resource (get (System/getenv) "CONFIG_EDN_LOCATION" "config.edn")))))
 
 
-;;;;;;;;;;;;;;;; HANDLERS
-
 (defn index [req]
-  (if-let [resp (resource-response (str (:uri req)) {:root "public"})]
-    resp
-    {:status 200
-     :headers {"Content-Type" "text/html"}
-     :body (html/index)}))
-
-(def routes
-  ["" {#".*" :index}])
-
+  {:status 200
+   :headers {"Content-Type" "text/html"}
+   :body (html/index)})
 
 ;; main handler
 
 (defn handler [req]
-  (let [match (bidi/match-route routes (:uri req)
-                                :request-method (:request-method req))]
-    (case (:handler match)
-      :index (index req)
-      req)))
+  (index req))
 
 (defn top-handler []
   (-> handler
-      (wrap-resource "public")))
+      (wrap-resource "public")
+      (wrap-proxy #"^/.+" (get ext-config :api))))

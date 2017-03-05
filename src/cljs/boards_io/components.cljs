@@ -224,7 +224,7 @@
             (if token
               (dom/div nil email)
               (dom/div nil
-                       (dom/a #js {:href (str js/boards-io.core.API "/oauth") :target "_self"} "Login with Google"))))))
+                       (dom/a #js {:href "/oauth" :target "_self"} "Login with Google"))))))
 
 
 (defui Header

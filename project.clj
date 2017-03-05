@@ -19,7 +19,8 @@
                  [org.omcljs/om "1.0.0-alpha47"]
                  [org.danielsz/system         "0.3.2-SNAPSHOT"]
                  [hiccup "1.0.5"]
-                 [cheshire "5.7.0"]]
+                 [cheshire "5.7.0"]
+                 [puppetlabs/ring-middleware "1.0.0"]]
   
   :plugins [[lein-cljsbuild "1.1.5"]]
   :main boards-io.core
