@@ -11,7 +11,6 @@
 
 (def ext-config (edn/read-string (slurp (io/resource (get (System/getenv) "CONFIG_EDN_LOCATION" "config.edn")))))
 
-
 (defn index [req]
   {:status 200
    :headers {"Content-Type" "text/html"}
@@ -22,7 +21,12 @@
 (defn handler [req]
   (index req))
 
+(def local-routes
+  ["api" "oauth" "auth"])
+
 (defn top-handler []
   (-> handler
       (wrap-resource "public")
-      (wrap-proxy #"^/.+" (get ext-config :api))))
+      (wrap-proxy
+       (re-pattern (str "^/" (reduce #(str %1 "|" %2)  local-routes)))
+       (get ext-config :api))))
