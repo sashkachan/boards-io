@@ -134,7 +134,6 @@
                                                         (assoc :entity :task/moving)
                                                         (assoc :ident {:task-id (-> task-over :ident :id)})))
                                                    (h/drag-start drag-data-map))))
-                                :onDrop (fn [e] (println "column drop "))
                                 :onDragEnd (fn [e] 
                                              (.preventDefault e)
                                              (h/drag-end-task {:reconciler (om/get-reconciler this)})

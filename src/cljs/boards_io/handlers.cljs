@@ -108,7 +108,6 @@
                                    (om/transform-reads reconciler [:route/data])))))
 
 (defn stop-loading [{:keys [reconciler]}]
-  #_(println "send r " @reconciler)
   (om/transact! reconciler `[(local/loading! {:loading-state false})]))
 
 (defn mouse-enter [{:keys [reconciler entity entity-id]}]

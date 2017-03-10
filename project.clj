@@ -7,7 +7,7 @@
   :jvm-opts ^:replace ["-Xms512m" "-Xmx512m" "-server"]
   
   :dependencies [[org.clojure/clojure "1.8.0"]
-                 [org.clojure/clojurescript "1.9.494"]
+                 [org.clojure/clojurescript "1.9.229"]
                  [org.clojure/core.async "0.2.385"]
                  [org.clojure/tools.namespace "0.2.11"]
                  [org.clojure/tools.logging   "0.3.1"]
@@ -17,7 +17,7 @@
                  [com.cognitect/transit-cljs  "0.8.239"]
                  [ring "1.5.0"]
                  [org.omcljs/om "1.0.0-alpha47"]
-                 [org.danielsz/system         "0.3.2-SNAPSHOT"]
+                 [org.danielsz/system         "0.3.1"]
                  [hiccup "1.0.5"]
                  [cheshire "5.7.0"]
                  [puppetlabs/ring-middleware "1.0.0"]]
@@ -48,11 +48,21 @@
                                      :compiler {:main "boards-io.core"
                                                 :asset-path "/js",
                                                 :optimizations :advanced
+                                                :closure-defines {goog.DEBUG false}
                                                 :recompile-dependents false
                                                 :output-dir "resources/public/js/",
                                                 :output-to "resources/public/js/main.js",
                                                 :source-map-timestamp true}}}}}
-             
+             :test
+             {:cljsbuild
+              {:builds {:test {:id "test"
+                               :source-paths ["src/clj" "src/cljs" "src/test"]
+                               :compiler {
+                                          :output-to "script/tests.simple.js"
+                                          :output-dir "script/out"
+                                          :source-map "script/tests.simple.js.map"
+                                          :output-wrapper false
+                                          :optimizations :simple}}}}}
              :cider
              {:dependencies [[cider/cider-nrepl "0.15.0-SNAPSHOT"]
                              [refactor-nrepl "2.3.0-SNAPSHOT"]
@@ -76,15 +86,11 @@
                                                 cider.nrepl.middleware.out/wrap-out
                                                 cider.nrepl.middleware.undef/wrap-undef
                                                 cider.nrepl.middleware.version/wrap-version]}
-              }}
-  :cljsbuild {:builds {:test {:id "test"
-                              :source-paths ["src/clj" "src/cljs" "src/test"]
-                              :compiler {
-                                         :output-to "script/tests.simple.js"
-                                         :output-dir "script/out"
-                                         :source-map "script/tests.simple.js.map"
-                                         :output-wrapper false
-                                         :optimizations :simple}}}}
+              }
+             :uberjar {
+                       :aot :all
+                       }}
+  :prep-tasks ["compile" ["cljsbuild" "once"]]
   :source-paths ["src/clj" "src/cljs" "src/dev"]
   :clean-targets ^{:protect false} ["resources/public/js" "target"])
 
