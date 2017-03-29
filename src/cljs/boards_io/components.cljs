@@ -84,10 +84,8 @@
                                                                         :entity :task/over
                                                                         :entity-id (:db/id task)}))
                                       :onDrop (fn [e]
-                                                (h/drag-end-task {:reconciler (om/get-reconciler this)})
-                                                (println "drop for task"))
+                                                (h/drag-end-task {:reconciler (om/get-reconciler this)}))
                                       :onDragStart (fn [e]
-                                                     (js/console.log "Dragging task")
                                                      (let [ ;e (.-nativeEvent e)
                                                            _ (.setData (.-dataTransfer e) "text/plain" "")
                                         ;_ (.setDragImage (.-dataTransfer e) (cnv/get-image) 10 10)
@@ -97,6 +95,7 @@
                                                                           :reconciler (om/get-reconciler this)
                                                                           :entity :task/moving
                                                                           :ident {:task-id (-> (:db/id task))}}]
+                                                       #_(aset (.-target e) "style" "transform: rotate(2deg);")
                                                        (h/drag-start drag-data-map)
                                                        (.stopPropagation e)))
                                       :onDragOver (fn [e]
@@ -132,9 +131,13 @@
   (render [this]
           (let [is-moving? (-> this om/props :moving)
                 task-over (-> this om/props :task/over)
+                mov-task-id (:task/moving (om/props this))
                 class-name (str "board-column " (if is-moving? "moving" ""))
                 style #js {:order (-> this om/props :column/order) }
                 column-id (:db/id (om/props this))
+                column-tasks (mapv #(cond-> %
+                                      (and (= (:db/id %) mov-task-id))
+                                      (assoc :moving true)) (:column/tasks (om/props this)))
                 drag-data-map {:component this
                                :reconciler (om/get-reconciler this)
                                :entity :column/moving
@@ -146,18 +149,19 @@
                                 :onDragStart (fn [e]
                                                (let [e (.-nativeEvent e)
                                                      _ (.setData (.-dataTransfer e) "text/plain" "")
-                                                     ;_ (.setDragImage (.-dataTransfer e) (cnv/get-image) 10 10)
+                                        ;_ (.setDragImage (.-dataTransfer e) (cnv/get-image) 10 10)
                                                      _ (aset (.-dataTransfer e) "dropEffect" "move")
-                                                     _ (aset (.-dataTransfer e) "effectAllowed" "move")]
+;                                                     _ (aset (.-dataTransfer e) "effectAllowed" "move")
+                                                     ]
                                                  (js/console.log "Drag start column")
                                                  (if nil #_(and (= (-> task-over :state) :enter)
-                                                          (not= nil (-> task-over :ident :id)))
-                                                   (h/drag-start
-                                                    (-> drag-data-map
-                                                        (assoc :entity :task/moving)
-                                                        (assoc :ident {:task-id (-> task-over :ident :id)})))
-                                                   (h/drag-start drag-data-map))))
-                                :onDrop (fn [e] (println "drop for col"))
+                                                                (not= nil (-> task-over :ident :id)))
+                                                     (h/drag-start
+                                                      (-> drag-data-map
+                                                          (assoc :entity :task/moving)
+                                                          (assoc :ident {:task-id (-> task-over :ident :id)})))
+                                                     (h/drag-start drag-data-map))))
+                                :onDrop (fn [e] )
                                 :onDragOver (fn [e]
                                               #_(.stopPropagation e)
                                               (.preventDefault e))
@@ -173,7 +177,7 @@
             (dom/div (clj->js js-map) 
                      [(dom/div #js {:className "board-column-title" :key (str "item-title-" column-id)} (str (:column/name (om/props this))))
                       (dom/div #js {:className "board-column-tasks" :key (str "board-column-tasks-" column-id)}
-                               (mapv column-task (:column/tasks (om/props this))))
+                               (mapv column-task column-tasks))
                       (dom/div #js {:className "board-column-new-item" :key (str "new-item-div-" column-id)}
                                (dom/a #js {:href "#" :onClick #(h/modal-open {:reconciler (om/get-reconciler this) :ref :column/new-task-modal :ident {:column-id (:db/id (om/props this))}} )} "New item..." ))]))))
 
@@ -188,7 +192,7 @@
                               :column/new-task-modal
                               :column/save-btn-field
                               :task/moving
-                              {:field-idents [:column/moving :task/moving :task/over]}]}
+                              {:field-idents [:column/moving :task/moving ]}]}
            :app/route])
 
   Object
@@ -201,18 +205,13 @@
                                mov-task-id (-> local-state :field-idents :task/moving :task-id)
                                column-moving (-> local-state :column/moving :state)
                                task-moving (-> local-state :task/moving :state)
-                               task-items (mapv #(cond-> %
-                                                   (and (= (:db/id %) mov-task-id)
-                                                        (= :drag-start task-moving))
-                                                   (assoc :moving true)) (:task/_column col))
+
                                col (cond-> col
                                      (and (= column-moving :drag-start) (= (:db/id col) mov-col-id))
-                                     (assoc :moving true))
-                               col' (-> col
-                                        (assoc :task/_column task-items)
-                                        (assoc :task/over {:state (-> local-state :task/over :state )
-                                                           :ident (-> local-state :field-idents :task/over)})) ]
-                           (column-item col')))]
+                                     (assoc :moving true)
+                                     (= :drag-start task-moving) (assoc :task/moving mov-task-id))
+ ]
+                           (column-item col)))]
      (dom/div #js {:className "board-wrap" :key (str "board-wrap-" board-id)}
               (merge
                (into [] (map proc-col-item (:column/list (om/props this))))
