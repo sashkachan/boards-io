@@ -5,30 +5,40 @@
             :url "http://www.eclipse.org/legal/epl-v10.html"}
   :min-lein-version "2.6.1"
   :jvm-opts ^:replace ["-Xms512m" "-Xmx512m" "-server"]
-  
+  :repositories {"my.datomic.com" {:url "https://my.datomic.com/repo"
+                                 :creds :gpg}}  
   :dependencies [[org.clojure/clojure "1.8.0"]
                  [org.clojure/clojurescript "1.9.229"]
                  [org.clojure/core.async "0.2.385"]
                  [org.clojure/tools.namespace "0.2.11"]
                  [org.clojure/tools.logging   "0.3.1"]
+                 [com.datomic/datomic-pro "0.9.5394"]
+                 [org.postgresql/postgresql "42.0.0"]
+                 [bidi "2.0.11"]
                  [cljsjs/react-bootstrap "0.30.7-0" :exclusions [cljsjs.react]]
                  [com.stuartsierra/component  "0.3.1"]
                  [bidi "2.0.11"]
                  [com.cognitect/transit-cljs  "0.8.239"]
+                 [com.cognitect/transit-clj   "0.8.300"]
                  [ring "1.5.0"]
                  [org.omcljs/om "1.0.0-alpha47"]
+                 [ring-middleware-format "0.7.2"]
                  [org.danielsz/system         "0.3.1"]
                  [hiccup "1.0.5"]
                  [cheshire "5.7.0"]
-                 [puppetlabs/ring-middleware "1.0.0"]]
+                 [stuarth/clj-oauth2 "0.3.2"]
+                 [cheshire "5.7.0"]
+                 [clj-http "3.4.1"]
+
+                 [ring-middleware-format "0.7.2"]]
   
   :plugins [[lein-cljsbuild "1.1.5"]]
   :main boards-io.core
   :profiles {:dev
              {:dependencies [[com.cemerick/piggieback "0.2.1"]
                              [figwheel-sidecar "0.5.9-SNAPSHOT"]]
-              :repl-options {:port 8230
-                             }
+              :repl-options {
+                             :nrepl-middleware [cemerick.piggieback/wrap-cljs-repl]}
               :cljsbuild
               {:builds {:dev {:id "dev"
                               :source-paths ["src/clj" "src/cljs"]
@@ -90,7 +100,7 @@
              :uberjar {
                        :aot :all
                        }}
-  :prep-tasks ["compile" ["cljsbuild" "once"]]
+                                        ;:prep-tasks ["compile" ["cljsbuild" "once"]]
   :source-paths ["src/clj" "src/cljs" "src/dev"]
   :clean-targets ^{:protect false} ["resources/public/js" "target"])
 
