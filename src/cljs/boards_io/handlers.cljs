@@ -90,7 +90,8 @@
 
 (defn update-order [{:keys [reconciler component entity entity-id extra]}]
   (let [st @reconciler
-        task-dragging? (= :drag-start (get-in st [:app/local-state :task/moving :state]))       
+        task-dragging? (= :drag-start (get-in st [:app/local-state :task/moving :state]))
+        _ (println "updateing order task " task-dragging?)
         dragged-task-id (get-in st [:app/local-state :field-idents :task/moving :task-id])
         dragged-task-column (uo/taskid->columnid st dragged-task-id)]
     (om/transact! reconciler

@@ -3,6 +3,7 @@
             [om.next :as om :refer-macros [defui]]
             [boards-io.parser :as parser]
             [boards-io.transit :as transit]
+            [boards-io.drawcanvas :as cnn]
             [om.dom :as dom]
             [om.util :as util]
             [goog.log :as glog]
@@ -18,7 +19,6 @@
             [boards-io.handlers :as h]
             [om.next.protocols :as p])
   (:import goog.History ))
-
 
 (enable-console-print!)
 
