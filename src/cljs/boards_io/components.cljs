@@ -48,7 +48,7 @@
                     (dom/div #js {:key "board-list-div2"}
                              (dom/a #js {:href "#"
                                          :key "board-list-div2-a"
-                                         :onClick #(h/modal-open {:reconciler (om/get-reconciler this) :ref :board/new-board-modal} )} "New board..."))
+                                         :onClick #(h/modal-open {:reconciler (om/get-reconciler this) :ref :board/new-board-modal} )} "New board"))
                     (let [{:keys [app/local-state]} (om/props this)]
                       (modal {:root-query (get-root-query)
                               :show (= 1 (-> local-state :board/new-board-modal :state))
@@ -173,7 +173,7 @@
                       (dom/div #js {:className "board-column-tasks" :key (str "board-column-tasks-" column-id)}
                                (mapv column-task column-tasks))
                       (dom/div #js {:className "board-column-new-item" :key (str "new-item-div-" column-id)}
-                               (dom/a #js {:href "#" :onClick #(h/modal-open {:reconciler (om/get-reconciler this) :ref :column/new-task-modal :ident {:column-id (:db/id (om/props this))}} )} "New item..." ))]))))
+                               (dom/a #js {:href "#" :onClick #(h/modal-open {:reconciler (om/get-reconciler this) :ref :column/new-task-modal :ident {:column-id (:db/id (om/props this))}} )} "New item" ))]))))
 
 (def column-item (om/factory ColumnItem {:keyfn :db/id}))
 
@@ -213,7 +213,7 @@
                                     :onClick #(h/modal-open
                                                {:reconciler (om/get-reconciler this)
                                                 :ref :column/new-column-modal
-                                                :ident {:board-id board-id}} )} "New column..."))
+                                                :ident {:board-id board-id}} )} "New column"))
                (modal {:root-query (get-root-query)
                        :show (= 1 (-> local-state :column/new-column-modal :state))
                        :save-btn-state (-> local-state :column/save-btn-field :state)
@@ -240,7 +240,7 @@
   (render [this]
           (let [{:keys [user/email user/userid user/token] :as lp} (get (om/props this) :oauth/user)]
             (if token
-              (dom/div nil email)
+              (dom/div nil "")
               (dom/div nil
                        (dom/a #js {:href "/oauth" :target "_self"} "Login with Google"))))))
 
@@ -251,13 +251,13 @@
    [this]
    (dom/nav #js {:className "navbar navbar-default" :id "header"}
             (dom/div #js {:className "container-fluid"}
-                     [(dom/div #js {:className "col-md-10" :key "nav-col-10"}
+                     [(dom/div #js {:className "col-md-10 navbar-round-blob" :key "nav-col-10"}
                                [(dom/div #js {:className "navbar-header" :key "navbar-head"}
                                          (dom/a #js {:className "navbar-brand" :href "/"} "Boards.io"))
                                 (dom/div #js {:className  "collapse navbar-collapse" :key "navbar-collapse"}
                                                                     (dom/ul #js {:className "nav navbar-nav"}
                                                                             (dom/li #js {:id "boards-list"} 
-                                                                                    (dom/a #js {:href "#"} "Boards"))))])
+                                                                                    (dom/a #js {:href "#"} ""))))])
                       (dom/div #js {:className "col-md-2" :key "col-md-2"} 
                                ((om/factory AuthHeader {:keyfn identity}) (om/props this) ))]))))
 

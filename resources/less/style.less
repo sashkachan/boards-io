@@ -1,0 +1,100 @@
+@import "../../node_modules/bootstrap/less/bootstrap.less";
+
+#app {
+    margin-top: 75px;
+    width: 100%;
+}
+
+#header {
+    margin-top: 5px;
+}
+.navbar-round-blob {
+    background: @jungle-green;
+    border-radius: 3px;
+    color: @grayish-light;
+    
+}
+
+.navbar-round-blob a {
+    color: @gray-lighter;
+}
+
+
+#header {
+    position: fixed;
+    width:100%;
+    top:0;
+}
+
+.board-list {
+    display: flex;
+    flex-direction: column;
+    
+}
+.board-item {
+    margin:5px;
+    padding: 10px 15px;
+    background-color: #fff;
+    border-radius: 5px;
+    display: inline-block;
+    width: 250px;    
+    
+}
+.board-wrap {
+    margin: 0 -10px;
+    white-space: nowrap;
+    display: inline-flex;
+    align-items: flex-start;
+}
+
+.board-column {
+    border: 1px solid @gray-lighter;
+    box-shadow: 0 1px 1px 0px @gray-light;
+    display:inline-block;
+    background-color: #ffffff;
+    padding: 10px;
+    width: 280px;
+    margin: 0 10px;
+    border-radius: 2px;
+}
+
+.new-column {
+    order: 9999;
+}
+
+.board-column-tasks {
+    display: flex;
+    flex-direction: column;
+}
+
+.board-column-new-item {
+    align-self: flex-end;  
+}
+
+.board-column-title {
+    margin-bottom:3px;
+    color: @gray;
+}
+
+.board-column-task-item {
+    margin:3px 0;
+    height: 40px;
+    padding: 7px 10px;
+    border-radius: 4px;
+    background-color: @grayish-less-light;
+    display: inline-block;
+    border: 1px solid @grayish-less-light;
+    
+}
+.board-column-tasks > .moving {
+    background-color: @grayish-darker;
+    color: @grayish-darker;
+    border: 1px dashed @gray-lighter;
+}
+
+.board-wrap > .moving {
+    border-radius: 5px;
+    opacity: 0.5;
+    height: 2em;
+    transform: rotate(2deg);
+}
