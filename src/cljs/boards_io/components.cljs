@@ -25,9 +25,9 @@
   (render [this]         
           (let [{:keys [db/id board/name board/description]} (om/props this)]
             (dom/div 
-             #js {:key (str "board-item-div-" id)}
-             (dom/a #js{:href (b/path-for router/router :columns :board-id id) :key (str "board-item-div-a-" id)} name)
-             (dom/p #js {:key (str "board-item-div-p-" id)} description)))))
+             #js {:className "board-item" }
+             (dom/a #js{:href (b/path-for router/router :columns :board-id id)} name)
+             (dom/p nil description)))))
 
 (def board-item (om/factory BoardItem {:keyfn :db/id}))
 
@@ -39,23 +39,24 @@
   
   Object
   (render [this]
-          (dom/div #js {:key "board-list"}
-                     [(dom/div #js {:key "board-list-div1"} (apply
-                                       dom/div #js {:key "board-list-div1"}
-                                       (-> (map #(board-item %) (:board/list (om/props this)))
-                                           vec)))
-                      (dom/div #js {:key "board-list-div2"}
-                               (dom/a #js {:href "#"
-                                           :key "board-list-div2-a"
-                                           :onClick #(h/modal-open {:reconciler (om/get-reconciler this) :ref :board/new-board-modal} )} "New board..."))
-                      (let [{:keys [app/local-state]} (om/props this)]
-                        (modal {:root-query (get-root-query)
-                                :show (= 1 (-> local-state :board/new-board-modal :state))
-                                :save-btn-state (-> local-state :board/save-btn-field :state)
-                                :ref :board/new-board-modal
-                                :submit-fn (partial h/new-board-save)
-                                :modal-content m/new-board-form
-                                :title "Create new board"}))])))
+          (dom/div #js {:className "board-list"}
+                   [(dom/div #js {:key "board-list-div1"}
+                             (apply
+                              dom/div #js {:key "board-list-div1"}
+                              (-> (map #(board-item %) (:board/list (om/props this)))
+                                  vec)))
+                    (dom/div #js {:key "board-list-div2"}
+                             (dom/a #js {:href "#"
+                                         :key "board-list-div2-a"
+                                         :onClick #(h/modal-open {:reconciler (om/get-reconciler this) :ref :board/new-board-modal} )} "New board..."))
+                    (let [{:keys [app/local-state]} (om/props this)]
+                      (modal {:root-query (get-root-query)
+                              :show (= 1 (-> local-state :board/new-board-modal :state))
+                              :save-btn-state (-> local-state :board/save-btn-field :state)
+                              :ref :board/new-board-modal
+                              :submit-fn (partial h/new-board-save)
+                              :modal-content m/new-board-form
+                              :title "Create new board"}))])))
 
 (defui ColumnTask
   static om/Ident
@@ -135,13 +136,13 @@
                 class-name (str "board-column " (if is-moving? "moving" ""))
                 style #js {:order (-> this om/props :column/order) }
                 column-id (:db/id (om/props this))
-                column-tasks (mapv #(cond-> %
-                                      (and (= (:db/id %) mov-task-id))
-                                      (assoc :moving true)) (:column/tasks (om/props this)))
                 drag-data-map {:component this
                                :reconciler (om/get-reconciler this)
                                :entity :column/moving
                                :ident {:column-id column-id}}
+                column-tasks (mapv #(cond-> %
+                                      (and (= (:db/id %) mov-task-id))
+                                      (assoc :moving true)) (:column/tasks (om/props this)))
                 js-map (cond-> {:className class-name
                                 :key (str "item-" column-id)
                                 :style style
@@ -153,14 +154,7 @@
                                                      _ (aset (.-dataTransfer e) "dropEffect" "move")
 ;                                                     _ (aset (.-dataTransfer e) "effectAllowed" "move")
                                                      ]
-                                                 (js/console.log "Drag start column")
-                                                 (if nil #_(and (= (-> task-over :state) :enter)
-                                                                (not= nil (-> task-over :ident :id)))
-                                                     (h/drag-start
-                                                      (-> drag-data-map
-                                                          (assoc :entity :task/moving)
-                                                          (assoc :ident {:task-id (-> task-over :ident :id)})))
-                                                     (h/drag-start drag-data-map))))
+                                                 (h/drag-start drag-data-map)))
                                 :onDrop (fn [e] )
                                 :onDragOver (fn [e]
                                               #_(.stopPropagation e)
@@ -205,12 +199,10 @@
                                mov-task-id (-> local-state :field-idents :task/moving :task-id)
                                column-moving (-> local-state :column/moving :state)
                                task-moving (-> local-state :task/moving :state)
-
                                col (cond-> col
                                      (and (= column-moving :drag-start) (= (:db/id col) mov-col-id))
                                      (assoc :moving true)
-                                     (= :drag-start task-moving) (assoc :task/moving mov-task-id))
- ]
+                                     (= :drag-start task-moving) (assoc :task/moving mov-task-id))]
                            (column-item col)))]
      (dom/div #js {:className "board-wrap" :key (str "board-wrap-" board-id)}
               (merge

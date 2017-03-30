@@ -26,6 +26,20 @@
     position: absolute;
 }*/
 
+.board-list {
+    display: flex;
+    flex-direction: column;
+    
+}
+.board-item {
+    width: 250px;
+    margin:5px;
+    padding: 10px;
+    border: 1px solid;
+    border-radius: 5px;
+    display: inline-block;
+    
+}
 .board-wrap {
     margin: 0 -10px;
     white-space: nowrap;
@@ -67,8 +81,8 @@
 }
 .board-column-tasks > .moving {
 
-    background-color: grey;
-    color: grey;
+    background-color: #e7e7e7;
+    color: #e7e7e7;
 }
 
 .board-wrap > .moving {
