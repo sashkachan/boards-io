@@ -1,0 +1,23 @@
+version: '2'
+services:
+  postgres:
+    ports:
+      - "32768:5432"
+    environment:
+      POSTGRES_PASSWORD: postgres
+    image: "postgres"
+    volumes:
+      - ./data:/var/lib/postgresql/data
+  datomic:
+    command: bin/transactor /data/sql-transactor.properties
+    build:
+      context: ./datomic-pro
+    volumes:
+      - ./:/data
+    image: "boardsio/datomic"
+    links:
+      - "postgres"
+    ports:
+      - "4334:4334"
+      - "4335:4335"
+      - "4336:4336"
