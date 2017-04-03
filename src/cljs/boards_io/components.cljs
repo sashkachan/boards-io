@@ -241,7 +241,7 @@
           (let [{:keys [user/email user/userid user/token] :as lp} (get (om/props this) :oauth/user)]
             (if token
               (dom/div nil "")
-              (dom/div nil
+              (dom/div #js {:className "navbar-auth-blob"}
                        (dom/a #js {:href "/oauth" :target "_self"} "Login with Google"))))))
 
 
@@ -251,7 +251,7 @@
    [this]
    (dom/nav #js {:className "navbar navbar-default" :id "header"}
             (dom/div #js {:className "container-fluid"}
-                     [(dom/div #js {:className "col-md-10 navbar-round-blob" :key "nav-col-10"}
+                     [(dom/div #js {:className "col-md-10" :key "nav-col-10"}
                                [(dom/div #js {:className "navbar-header" :key "navbar-head"}
                                          (dom/a #js {:className "navbar-brand" :href "/"} "Boards.io"))
                                 (dom/div #js {:className  "collapse navbar-collapse" :key "navbar-collapse"}

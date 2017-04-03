@@ -6,7 +6,7 @@
   :min-lein-version "2.6.1"
   :jvm-opts ^:replace ["-Xms512m" "-Xmx512m" "-server"]
   :repositories {"my.datomic.com" {:url "https://my.datomic.com/repo"
-                                 :creds :gpg}}  
+                                   :creds :gpg}}
   :dependencies [[org.clojure/clojure "1.8.0"]
                  [org.clojure/clojurescript "1.9.229"]
                  [org.clojure/core.async "0.2.385"]
@@ -95,11 +95,11 @@
                                                 cider.nrepl.middleware.trace/wrap-trace
                                                 cider.nrepl.middleware.out/wrap-out
                                                 cider.nrepl.middleware.undef/wrap-undef
-                                                cider.nrepl.middleware.version/wrap-version]}
-              }
+                                                cider.nrepl.middleware.version/wrap-version]}}
+
              :uberjar {
-                       :aot :all
-                       }}
+                       :aot :all}}
+
                                         ;:prep-tasks ["compile" ["cljsbuild" "once"]]
   :source-paths ["src/clj" "src/cljs" "src/dev"]
   :clean-targets ^{:protect false} ["resources/public/js" "target"])
