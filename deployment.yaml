@@ -1,0 +1,108 @@
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: boards-io
+  labels:
+    app: boards-io
+spec:
+  replicas: 1 # tells deployment to run 2 pods matching the template
+  template: # create pods using pod definition in this template
+    metadata:
+      labels:
+        app: boards-io
+    spec:
+      volumes:
+      - name: pg-data
+        persistentVolumeClaim:
+          claimName: pg-data-claim
+      - name: data
+        hostPath: 
+          path: /vol-data
+      containers:
+      - name: boards-io
+        image: gcr.io/boards-io/boards-io:1.0.0
+        imagePullPolicy: Always
+        ports:
+        - containerPort: 9082
+
+      - name: datomic
+        image: gcr.io/boards-io/datomic:latest
+        volumeMounts:
+          - mountPath: /data
+            name: data
+        ports:
+        - containerPort: 4334
+        - containerPort: 4335
+        - containerPort: 4336
+          
+      - name: postgres
+        image: postgres
+        env:
+          - name: DB_PASS
+            value: postgres
+          - name: PGDATA
+            value: /var/lib/postgresql/data/pgdata
+        ports:
+          - containerPort: 5432
+          
+        volumeMounts:
+          - mountPath: /var/lib/postgresql/data
+            name: pg-data
+---
+kind: Service
+apiVersion: v1
+metadata:
+  name: boards-io
+spec:
+  selector:
+    app: boards-io
+  ports:
+    - protocol: TCP
+      port: 80
+      targetPort: 9082
+      nodePort: 30061
+  type: LoadBalancer
+---
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  name: boards-io-ingress
+spec:
+  backend:
+    serviceName: boards-io
+    servicePort: 80
+  rules:
+  - host: treesie.io
+    http:
+      paths:
+      - path: /
+        backend:
+          serviceName: boards-io
+          servicePort: 80
+
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: pg-data-disk
+  labels:
+    name: pg-data-disk
+spec:
+  capacity:
+    storage: 10Gi
+  accessModes:
+    - ReadWriteOnce
+  gcePersistentDisk:
+    pdName: "pg-data-disk"
+    fsType: "ext4"
+---
+kind: PersistentVolumeClaim
+apiVersion: v1
+metadata:
+  name: pg-data-claim
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 10Gi

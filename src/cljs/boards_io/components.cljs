@@ -253,7 +253,7 @@
             (dom/div #js {:className "container-fluid"}
                      [(dom/div #js {:className "col-md-10" :key "nav-col-10"}
                                [(dom/div #js {:className "navbar-header" :key "navbar-head"}
-                                         (dom/a #js {:className "navbar-brand" :href "/"} "Boards.io"))
+                                         (dom/a #js {:className "navbar-brand" :href "/"} "treesie.io"))
                                 (dom/div #js {:className  "collapse navbar-collapse" :key "navbar-collapse"}
                                                                     (dom/ul #js {:className "nav navbar-nav"}
                                                                             (dom/li #js {:id "boards-list"} 

@@ -14,7 +14,7 @@ services:
       context: ./datomic-pro
     volumes:
       - ./:/data
-    image: "boardsio/datomic"
+    image: "boards-io/datomic"
     links:
       - "postgres"
     ports:
