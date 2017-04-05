@@ -1,0 +1,27 @@
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  name: boards-io-ingress
+  annotations:
+    kubernetes.io/tls-acme: "true"
+    kubernetes.io/ingress.class: "gce"
+spec:
+  tls:
+  - hosts:
+    - treesie.io
+    secretName: treesie-tls
+  rules:
+  - host: treesie.io
+    http:
+      paths:
+      - path: /.well-known/acme-challenge
+        backend:
+          serviceName: kube-lego-gce
+          servicePort: 8080
+  - host: treesie.io
+    http:
+      paths:
+      - path: /*
+        backend:
+          serviceName: boards-io
+          servicePort: 80

@@ -1,0 +1,28 @@
+kind: Service
+apiVersion: v1
+metadata:
+  name: boards-io
+spec:
+  selector:
+    app: boards-io
+  ports:
+    - port: 80
+      name: http
+      targetPort: 9082
+    - port: 443
+      name: https
+      targetPort: 9082
+  type: LoadBalancer
+
+kind: Service
+apiVersion: v1
+metadata:
+  name: kube-lego-gce
+spec:
+  selector:
+    app: kube-lego
+  ports:
+    - port: 8080
+      name: http
+      targetPort: 8080
+  type: LoadBalancer

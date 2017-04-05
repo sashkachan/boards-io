@@ -1,0 +1,25 @@
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: pg-data-disk
+  labels:
+    name: pg-data-disk
+spec:
+  capacity:
+    storage: 10Gi
+  accessModes:
+    - ReadWriteOnce
+  gcePersistentDisk:
+    pdName: "pg-data-disk"
+    fsType: "ext4"
+---
+kind: PersistentVolumeClaim
+apiVersion: v1
+metadata:
+  name: pg-data-claim
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 10Gi
