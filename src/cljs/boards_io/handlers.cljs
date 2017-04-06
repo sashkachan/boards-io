@@ -4,7 +4,8 @@
             [goog.log :as glog]
             [boards-io.logger :as l]
             [boards-io.update-order :as uo]
-            [goog.dom.forms :as forms]))
+            [goog.dom.forms :as forms]
+            [clojure.string :as str]))
 
 (declare start-loading)
 
@@ -18,22 +19,21 @@
     (glog/info l/*logger* "change-route! reread")))
 
 (defn modal-open [{:keys [reconciler ref ident]}]
-  (om/transact! reconciler
-   `[(local/toggle-field! {:field ~ref :field-state 1 :ident ~ident})]))
+  (om/transact! reconciler `[(local/toggle-field! {:field ~ref :field-state 1 :ident ~ident})]))
 
 (defn modal-close [{:keys [reconciler ref]} ]
   (om/transact! reconciler `[(local/toggle-field! {:field ~ref :field-state 0})]))
 
 (defn new-board-save [{:keys [reconciler save-btn-field idents] :as env}]
   (let [form (gdom/getElement "new-board-form")
-        title (forms/getValueByName form "board-title")
-        description (forms/getValueByName form "board-description")]
-    (om/transact! reconciler
-                  (into [`(local/toggle-field! {:field ~save-btn-field :field-state :off})
-                         `(save/new-board! {:title ~title :description ~description})
-                         `(local/toggle-field! {:field ~save-btn-field :field-state :on})]
-                        (om/transform-reads reconciler [:route/data])))
-    (modal-close (assoc env :ref :board/new-board-modal))))
+        title (forms/getValueByName form "board-title")]
+    (when-not (str/blank? title)
+      (om/transact! reconciler
+                    (into [`(local/toggle-field! {:field ~save-btn-field :field-state :off})
+                           `(save/new-board! {:title ~title})
+                           `(local/toggle-field! {:field ~save-btn-field :field-state :on})]
+                          (om/transform-reads reconciler [:route/data])))
+      (modal-close (assoc env :ref :board/new-board-modal)))))
 
 (defn new-task-save [{:keys [reconciler save-btn-field extras] :as env}]
   ; todo: if nil? extras -> exception!

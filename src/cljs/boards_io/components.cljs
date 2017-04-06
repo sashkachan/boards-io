@@ -27,7 +27,8 @@
             (dom/div 
              #js {:className "board-item" }
              (dom/a #js{:href (b/path-for router/router :columns :board-id id)} name)
-             (dom/p nil description)))))
+             
+             ))))
 
 (def board-item (om/factory BoardItem {:keyfn :db/id}))
 
@@ -35,7 +36,8 @@
 (defui BoardList
   static om/IQuery
   (query [this]
-         `[{:board/list ~(om/get-query BoardItem)} {:app/local-state [:board/new-board-modal]}])
+         `[{:board/list ~(om/get-query BoardItem)}
+           {:app/local-state [:board/new-board-modal]}])
   
   Object
   (render [this]
@@ -45,18 +47,16 @@
                               dom/div #js {:key "board-list-div1"}
                               (-> (map #(board-item %) (:board/list (om/props this)))
                                   vec)))
-                    (dom/div #js {:key "board-list-div2"}
-                             (dom/a #js {:href "#"
-                                         :key "board-list-div2-a"
-                                         :onClick #(h/modal-open {:reconciler (om/get-reconciler this) :ref :board/new-board-modal} )} "New board"))
                     (let [{:keys [app/local-state]} (om/props this)]
-                      (modal {:root-query (get-root-query)
-                              :show (= 1 (-> local-state :board/new-board-modal :state))
-                              :save-btn-state (-> local-state :board/save-btn-field :state)
-                              :ref :board/new-board-modal
-                              :submit-fn (partial h/new-board-save)
-                              :modal-content m/new-board-form
-                              :title "Create new board"}))])))
+                      (m/overlay-handler
+                       {:title "New board"
+                        :placement "right"
+                        :show (= 1 (-> local-state :board/new-board-modal :state))
+                        :hide-fn #(h/modal-close {:reconciler this :ref :board/new-board-modal} )
+                        :show-fn #(h/modal-open {:reconciler this :ref :board/new-board-modal} )
+                        :id "new-board-mod"}
+                       (m/new-board-form)))
+                    ])))
 
 (defui ColumnTask
   static om/Ident

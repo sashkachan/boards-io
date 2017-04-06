@@ -55,15 +55,15 @@
              :prod
              {:cljsbuild
               {:builds {:prod {:id "prod"
-                                     :source-paths ["src/cljs"]
-                                     :compiler {:main "boards-io.core"
-                                                :asset-path "/js",
-                                                :optimizations :advanced
-                                                :closure-defines {goog.DEBUG false}
-                                                :recompile-dependents false
-                                                :output-dir "resources/public/js/",
-                                                :output-to "resources/public/js/main.js",
-                                                :source-map-timestamp true}}}}}
+                               :source-paths ["src/cljs"]
+                               :compiler {:main "boards-io.core"
+                                          :asset-path "/js",
+                                          :optimizations :advanced
+                                          :closure-defines {goog.DEBUG false}
+                                          :recompile-dependents false
+                                          :output-dir "resources/public/js/",
+                                          :output-to "resources/public/js/main.js",
+                                          :source-map-timestamp true}}}}}
              :test
              {:cljsbuild
               {:builds {:test {:id "test"
@@ -78,7 +78,8 @@
              {:dependencies [[cider/cider-nrepl "0.15.0-SNAPSHOT"]
                              [refactor-nrepl "2.3.0-SNAPSHOT"]
                              [org.clojure/tools.nrepl "0.2.12"]]
-              :repl-options {:nrepl-middleware [refactor-nrepl.middleware/wrap-refactor
+              :repl-options {:timeout 120000
+                             :nrepl-middleware [refactor-nrepl.middleware/wrap-refactor
                                                 cider.nrepl.middleware.apropos/wrap-apropos
                                                 cider.nrepl.middleware.classpath/wrap-classpath
                                                 cider.nrepl.middleware.complete/wrap-complete
@@ -98,13 +99,10 @@
                                                 cider.nrepl.middleware.undef/wrap-undef
                                                 cider.nrepl.middleware.version/wrap-version]}}
 
-             :uberjar {
-                       :resource-paths ["env/prod/resources"]
+             :uberjar {:resource-paths ["env/prod/resources"]
                        :prep-tasks ["compile" ["cljsbuild" "once"]]
                        :aot :all}}
   :uberjar-name "boards-io-standalone.jar"
-  
-
   :source-paths ["src/clj" "src/cljs" "src/dev"]
   :clean-targets ^{:protect false} ["resources/public/js" "target"])
 
