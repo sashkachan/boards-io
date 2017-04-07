@@ -21,12 +21,38 @@
                   :onClick #(submit-fn env)
                   :key "mod-btn2"} b))
 
+(defui NewColumnForm
+  Object
+  (render [this]
+          (let [{:keys [extras root]} (om/props this)]
+            (dom/form
+             #js {:id "new-column-form"}
+             (dom/div #js {:className "form-group" :key "new-column-form-div"}
+                      [(bs-form-group #js {:key "new-col-grp"}
+                                      (dom/input #js {:type "text"
+                                                      :name "column-title"
+                                                      :className "form-control"
+                                                      :placeholder "Title"
+                                                      :key "new-column-form-div-inp1"}
+                                                 ))
+                       (bs-button
+                        #js {:bsStyle "primary"
+                             :onClick #(h/new-column-save {:reconciler root
+                                                           :ref :column/new-column-modal
+                                                           :extras extras}
+                                                          )
+                             :key "mod-btn2"} "Save")]))
+            )))
+
+
+(def new-column-form (om/factory NewColumnForm))
+
 (defui NewBoardForm
   Object
   (initLocalState [this]
                   {:done-handler nil})
   (render [this]
-          (let [{:keys []} (om/props this)]
+          (let [{:keys [root]} (om/props this)]
             (dom/form
              #js {:id "new-board-form"}
              (dom/div #js {:className "form-group"}
@@ -39,8 +65,7 @@
                                                  ))
 
                        (bs-button #js {:bsStyle "primary"
-                                       :onClick #(h/new-board-save {:reconciler (om/get-reconciler this)
-                                                                    :save-btn-field :board/save-btn-field
+                                       :onClick #(h/new-board-save {:reconciler root
                                                                     :ref :board/new-board-modal}
                                                                    )
                                        :key "mod-btn2"} "Save")
@@ -88,17 +113,6 @@
                              :className "form-control"
                              :placeholder "Title"
                              :key "new-task-form-div-inp1"}
-                        )])))
-
-(def new-column-form
-  (dom/form
-   #js {:id "new-column-form"}
-   (dom/div #js {:className "form-group" :key "new-column-form-div"}
-            [(dom/input #js {:type "text"
-                             :name "column-title"
-                             :className "form-control"
-                             :placeholder "Title"
-                             :key "new-column-form-div-inp1"}
                         )])))
 
 

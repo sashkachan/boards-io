@@ -55,7 +55,7 @@
                         :hide-fn #(h/modal-close {:reconciler this :ref :board/new-board-modal} )
                         :show-fn #(h/modal-open {:reconciler this :ref :board/new-board-modal} )
                         :id "new-board-mod"}
-                       (m/new-board-form)))
+                       (m/new-board-form {:root this})))
                     ])))
 
 (defui ColumnTask
@@ -76,14 +76,6 @@
                                       :draggable "true"
                                       :key (:db/id task)
                                       :style #js {:order (:task/order task) }
-                                      :onMouseEnter (fn [e]
-                                                      #_(h/mouse-enter {:reconciler (om/get-reconciler this)
-                                                                        :entity :task/over
-                                                                        :entity-id (:db/id task)}))
-                                      :onMouseLeave (fn [e]
-                                                      #_(h/mouse-leave {:reconciler (om/get-reconciler this)
-                                                                        :entity :task/over
-                                                                        :entity-id (:db/id task)}))
                                       :onDrop (fn [e]
                                                 (h/drag-end-task {:reconciler (om/get-reconciler this)}))
                                       :onDragStart (fn [e]
@@ -213,20 +205,19 @@
       (dom/div #js {:className "board-wrap" :key (str "board-wrap-" board-id)}
                (merge
                 (into [] (map proc-col-item (:column/list (om/props this))))
-                (dom/div #js {:className "board-column new-column" :key "board-column-new-column"}
-                         (dom/a #js {:href "#"
-                                     :onClick #(h/modal-open
-                                                {:reconciler (om/get-reconciler this)
-                                                 :ref :column/new-column-modal
-                                                 :ident [:board/by-id board-id]} )} "New column"))
-                (modal {:root-query (get-root-query)
-                        :show (= 1 (-> local-state :column/new-column-modal :state))
-                        :save-btn-state (-> local-state :column/save-btn-field :state)
-                        :ref :column/new-column-modal
-                        :submit-fn (partial h/new-column-save)
-                        :modal-content m/new-column-form
-                        :extras (-> local-state :field-idents :column/new-column-modal)
-                        :title "Create new column"})
+                (dom/div
+                 #js {:style #js {:order 9999}}
+                 (m/overlay-handler
+                  {:title "New column"
+                   :placement "bottom"
+                   :show (= 1 (-> local-state :column/new-column-modal :state))
+                   :hide-fn #(h/modal-close {:reconciler this :ref :column/new-column-modal} )
+                   :show-fn #(h/modal-open {:reconciler this :ref :column/new-column-modal
+                                            :ident {:board/by-id board-id}}  )
+                   :id "new-col-mod"}
+                  (m/new-column-form
+                   {:root this
+                    :extras (-> local-state :field-idents :column/new-column-modal)}))) 
                 (modal {:root-query (get-root-query)
                         :show (= 1 (-> local-state :column/new-task-modal :state ))
                         :save-btn-state ( -> local-state :column/save-btn-field :state)
