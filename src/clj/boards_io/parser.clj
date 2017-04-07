@@ -22,9 +22,19 @@
                     [ ?uid :user/token ?token]] (d/db conn) query (or auth-token ""))]
     {:value resp}))
 
+(defmethod readf :board/by-id
+  [{:keys [auth-token conn query]} k {:keys [board/by-id]}]
+  (let [resp (d/q '[:find [(pull ?eid q) ...]
+                    :in $ q ?token ?eid
+                    :where
+                    [ ?eid :board/name]
+                    [ ?eid :board/user ?uid]
+                    [ ?uid :user/token ?token]] (d/db conn) query (or auth-token "") (read-string by-id))]
+    {:value resp}))
+
 (defmethod readf :column/list
   [{:keys [conn query auth-token]} k params]
-  (let [{:keys [board-id]} params]
+  (let [{:keys [board/by-id]} params]
     {:value (d/q '[:find [(pull ?cid q) ...]
                    :in $ ?bid q ?token
                    :where
@@ -32,9 +42,8 @@
                    [ ?cid :column/board ?bid]
                    [ ?bid :board/user ?uid]
                    [ ?uid :user/token ?token]
-                   ;[ ?tid :task/name ]
                    ]
-                 (d/db conn) (read-string board-id) query auth-token)}))
+                 (d/db conn) (read-string by-id) query auth-token)}))
 
 (defmethod readf :oauth/user
   [{:keys [conn query]} k params]

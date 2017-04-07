@@ -26,7 +26,7 @@
           (let [{:keys [db/id board/name board/description]} (om/props this)]
             (dom/div 
              #js {:className "board-item" }
-             (dom/a #js{:href (b/path-for router/router :columns :board-id id)} name)
+             (dom/a #js{:href (b/path-for router/router :columns :board/by-id id)} name)
              
              ))))
 
@@ -187,13 +187,16 @@
                               :column/save-btn-field
                               :task/moving
                               {:field-idents [:column/moving :task/moving ]}]}
-           :app/route])
+           :app/route
+           {:board/by-id [:board/name]}])
 
   Object
   (render
    [this]
-   (let [{:keys [app/local-state]} (om/props this)
-         board-id (js/parseInt (-> (om/props this) :app/route second :board-id))
+   (let [
+         {:keys [app/local-state board/by-id]} (om/props this)
+         {:keys [board/name]} (first by-id)
+         board-id (js/parseInt (-> (om/props this) :app/route second :board/by-id))
          proc-col-item (fn [col]
                          (let [mov-col-id (-> local-state :field-idents :column/moving :column-id)
                                mov-task-id (-> local-state :field-idents :task/moving :task-id)
@@ -204,32 +207,34 @@
                                      (assoc :moving true)
                                      (= :drag-start task-moving) (assoc :task/moving mov-task-id))]
                            (column-item col)))]
-     (dom/div #js {:className "board-wrap" :key (str "board-wrap-" board-id)}
-              (merge
-               (into [] (map proc-col-item (:column/list (om/props this))))
-               (dom/div #js {:className "board-column new-column" :key "board-column-new-column"}
-                        (dom/a #js {:href "#"
-                                    :key "board-column-new-column-href"
-                                    :onClick #(h/modal-open
-                                               {:reconciler (om/get-reconciler this)
-                                                :ref :column/new-column-modal
-                                                :ident {:board-id board-id}} )} "New column"))
-               (modal {:root-query (get-root-query)
-                       :show (= 1 (-> local-state :column/new-column-modal :state))
-                       :save-btn-state (-> local-state :column/save-btn-field :state)
-                       :ref :column/new-column-modal
-                       :submit-fn (partial h/new-column-save)
-                       :modal-content m/new-column-form
-                       :extras (-> local-state :field-idents :column/new-column-modal)
-                       :title "Create new column"})
-               (modal {:root-query (get-root-query)
-                       :show (= 1 (-> local-state :column/new-task-modal :state ))
-                       :save-btn-state ( -> local-state :column/save-btn-field :state)
-                       :ref :column/new-task-modal
-                       :submit-fn (partial h/new-task-save)
-                       :modal-content m/new-task-form
-                       :extras (-> local-state :field-idents :column/new-task-modal)
-                       :title "Create new task"}))))))
+     (dom/div
+      nil
+      (dom/h5 #js {:className "board-column-board-name"} name)
+      (dom/div #js {:className "board-wrap" :key (str "board-wrap-" board-id)}
+               (merge
+                (into [] (map proc-col-item (:column/list (om/props this))))
+                (dom/div #js {:className "board-column new-column" :key "board-column-new-column"}
+                         (dom/a #js {:href "#"
+                                     :onClick #(h/modal-open
+                                                {:reconciler (om/get-reconciler this)
+                                                 :ref :column/new-column-modal
+                                                 :ident [:board/by-id board-id]} )} "New column"))
+                (modal {:root-query (get-root-query)
+                        :show (= 1 (-> local-state :column/new-column-modal :state))
+                        :save-btn-state (-> local-state :column/save-btn-field :state)
+                        :ref :column/new-column-modal
+                        :submit-fn (partial h/new-column-save)
+                        :modal-content m/new-column-form
+                        :extras (-> local-state :field-idents :column/new-column-modal)
+                        :title "Create new column"})
+                (modal {:root-query (get-root-query)
+                        :show (= 1 (-> local-state :column/new-task-modal :state ))
+                        :save-btn-state ( -> local-state :column/save-btn-field :state)
+                        :ref :column/new-task-modal
+                        :submit-fn (partial h/new-task-save)
+                        :modal-content m/new-task-form
+                        :extras (-> local-state :field-idents :column/new-task-modal)
+                        :title "Create new task"})))))))
 
 (defui AuthHeader
   static om/IQuery

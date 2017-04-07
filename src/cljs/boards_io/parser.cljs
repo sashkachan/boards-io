@@ -39,6 +39,16 @@
       (not= nil target)
       (assoc target (assoc ast :query-root true)))))
 
+(defmethod read :board/by-id [{:keys [ast target query state db-path route] :as env} k _]
+  (let [st @state]
+    (cond-> {}
+      (nil? target)
+      (assoc :value (denorm-data-val k env))
+      (not= nil target)
+      (assoc target (-> ast
+                        (assoc :query-root true)
+                        (assoc :params (second route)))))))
+
 (defmethod read :column/list [{:keys [ast target route query state db-path] :as env} k params]
   (let [st @state]
     (cond-> {}
