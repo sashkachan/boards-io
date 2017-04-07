@@ -49,8 +49,6 @@
 
 (defui NewBoardForm
   Object
-  (initLocalState [this]
-                  {:done-handler nil})
   (render [this]
           (let [{:keys [root]} (om/props this)]
             (dom/form
@@ -72,6 +70,30 @@
                        ])))))
 
 (def new-board-form (om/factory NewBoardForm))
+
+(defui NewTaskForm
+  Object
+  (render [this]
+          (let [{:keys [extras root]} (om/props this)]
+            (dom/form
+             #js {:id "new-task-form"}
+             (dom/div #js {:className "form-group"}
+                      [(bs-form-group #js {:key "new-task-grp"}
+                                      (dom/input #js {:type "text"
+                                                      :name "task-title"
+                                                      :className "form-control"
+                                                      :placeholder "Title"
+                                                      :key "new-task-form-div-inp1"}
+                                                 ))
+                       (bs-button
+                        #js {:bsStyle "primary"
+                             :onClick #(h/new-task-save {:reconciler root
+                                                         :ref :column/new-task-modal
+                                                         :extras extras})
+                             :key "mod-btn2"} "Save")]))
+            )))
+
+(def new-task-form (om/factory NewTaskForm))
 
 (defui OverlayHandler
   Object
@@ -104,17 +126,6 @@
                                   )]))))
 
 (def overlay-handler (om/factory OverlayHandler))
-(def new-task-form
-  (dom/form
-   #js {:id "new-task-form"}
-   (dom/div #js {:className "form-group" :key "new-task-form-div"}
-            [(dom/input #js {:type "text"
-                             :name "task-title"
-                             :className "form-control"
-                             :placeholder "Title"
-                             :key "new-task-form-div-inp1"}
-                        )])))
-
 
 (defui Modal
   Object

@@ -31,7 +31,7 @@
 
 (defn new-task-save [{:keys [reconciler save-btn-field extras] :as env}]
   ; todo: if nil? extras -> exception!
-  (let [st @reconciler
+  (let [st @(om/get-reconciler reconciler)
         column-id (:column-id extras)
         form (gdom/getElement "new-task-form")
         title (forms/getValueByName form "task-title")

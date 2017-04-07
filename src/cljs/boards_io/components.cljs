@@ -117,13 +117,16 @@
   static om/IQuery
   (query [this]
          `[:db/id :column/name :column/order {:column/board ~(om/get-query BoardItem)}
-           {:column/tasks ~(om/get-query ColumnTask)}])
+           {:column/tasks ~(om/get-query ColumnTask)}
+           [:app/local-state _]
+           [:other/thing _]])
   
 
   Object
   (render [this]
           (let [is-moving? (-> this om/props :moving)
-                task-over (-> this om/props :task/over)
+                _ (println (om/props this))
+                local-state (:app/local-state (om/props this))
                 mov-task-id (:task/moving (om/props this))
                 class-name (str "board-column " (if is-moving? "moving" ""))
                 style #js {:order (-> this om/props :column/order) }
@@ -144,7 +147,7 @@
                                                      _ (.setData (.-dataTransfer e) "text/plain" "")
                                         ;_ (.setDragImage (.-dataTransfer e) (cnv/get-image) 10 10)
                                                      _ (aset (.-dataTransfer e) "dropEffect" "move")
-;                                                     _ (aset (.-dataTransfer e) "effectAllowed" "move")
+                                        ;                                                     _ (aset (.-dataTransfer e) "effectAllowed" "move")
                                                      ]
                                                  (h/drag-start drag-data-map)))
                                 :onDrop (fn [e] )
@@ -160,12 +163,25 @@
                                 (fn [e]
                                   (h/update-order {:reconciler (om/get-reconciler this) :component this :entity :target-column-id :entity-id column-id})
                                   (.preventDefault e))))]
+            (println "task modal loc state" local-state)
             (dom/div (clj->js js-map) 
                      [(dom/div #js {:className "board-column-title" :key (str "item-title-" column-id)} (str (:column/name (om/props this))))
                       (dom/div #js {:className "board-column-tasks" :key (str "board-column-tasks-" column-id)}
                                (mapv column-task column-tasks))
-                      (dom/div #js {:className "board-column-new-item" :key (str "new-item-div-" column-id)}
-                               (dom/a #js {:href "#" :onClick #(h/modal-open {:reconciler (om/get-reconciler this) :ref :column/new-task-modal :ident {:column-id (:db/id (om/props this))}} )} "New item" ))]))))
+                      
+                      (dom/div
+                       #js {:className "board-column-new-item" :key (str "new-item-div-" column-id)}
+                       (m/overlay-handler
+                        {:title "New task"
+                         :placement "right"
+                         :show (= 1 (-> local-state :column/new-task-modal :state))
+                         :hide-fn #(h/modal-close {:reconciler this :ref :column/new-task-modal} )
+                         :show-fn #(h/modal-open {:reconciler this :ref :column/new-task-modal
+                                                  :ident {:column-id column-id}}  )
+                         :id "new-task-mod"}
+                        (m/new-task-form {:root this
+                                          :extras (-> local-state :field-idents :column/new-task-modal)})
+                        ))]))))
 
 (def column-item (om/factory ColumnItem {:keyfn :db/id}))
 
@@ -217,15 +233,8 @@
                    :id "new-col-mod"}
                   (m/new-column-form
                    {:root this
-                    :extras (-> local-state :field-idents :column/new-column-modal)}))) 
-                (modal {:root-query (get-root-query)
-                        :show (= 1 (-> local-state :column/new-task-modal :state ))
-                        :save-btn-state ( -> local-state :column/save-btn-field :state)
-                        :ref :column/new-task-modal
-                        :submit-fn (partial h/new-task-save)
-                        :modal-content m/new-task-form
-                        :extras (-> local-state :field-idents :column/new-task-modal)
-                        :title "Create new task"})))))))
+                    :extras (-> local-state :field-idents :column/new-column-modal)})))
+                ))))))
 
 (defui AuthHeader
   static om/IQuery

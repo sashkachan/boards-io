@@ -13,12 +13,24 @@
 (defmulti read om/dispatch)
 (defmulti mutate om/dispatch)
 
-(defn denorm-data-val [key {:keys [db-path ast state query]}]
+(defn merge-all [coll hm ]
+  (mapv (fn [e] (merge e hm)) coll))
+
+(defn denorm-data-val [key {:keys [db-path parser ast state query target] :as env}]
   (let [state' @state
         refs (get-in state' db-path)
-        q [(om/ast->query ast)]]
+        q [(om/ast->query ast)]
+        local-vals (into {} (remove (complement om.util/ident?) (get ast :query)))]
+    
     (when (not (empty? refs))
-      (get (om/db->tree q refs state') key))))
+      (cond-> (get (om/db->tree q refs state') key)
+        (not-empty local-vals)
+        (merge-all (zipmap (keys local-vals) (map #(get state' %) (keys local-vals))))))))
+
+(defn remove-idents [{:keys [ast target] :as env} k params]
+  (if (nil? target)
+    ast
+    (update-in ast [:query] #(into [] (remove om.util/ident?) %))))
 
 (defmethod read :oauth/user [{:keys [ast target route query state db-path] :as env} k params]
   (let [st @state
@@ -50,14 +62,17 @@
                         (assoc :params (second route)))))))
 
 (defmethod read :column/list [{:keys [ast target route query state db-path] :as env} k params]
-  (let [st @state]
+  (let [st @state
+        ast (remove-idents env k params)]
     (cond-> {}
       (not= nil target)
       (assoc target (-> ast
                         (assoc :query-root true)
                         (assoc :params (second route))))
       (nil? target)
-      (assoc :value (denorm-data-val k env)))))
+      (assoc :value (denorm-data-val k env) ))))
+
+
 
 (defn get-query-root
   [{:keys [ast target parser] :as env}]
