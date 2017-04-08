@@ -99,8 +99,9 @@
   Object
   (componentWillReceiveProps
    [this props]
-   (when-not (:show props)
-     (om/set-state! this {:show false :target nil})))
+   (let [curr-state (om/get-state this)]
+     (when-not (= (:show props) (:show curr-state)) 
+       (om/update-state! this #(assoc % :show (:show props))))))
   
   (initLocalState [this]
                   {:show false :target nil})

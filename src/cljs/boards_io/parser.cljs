@@ -72,8 +72,6 @@
       (nil? target)
       (assoc :value (denorm-data-val k env) ))))
 
-
-
 (defn get-query-root
   [{:keys [ast target parser] :as env}]
   {target (update-in ast [:query]

@@ -118,14 +118,12 @@
   (query [this]
          `[:db/id :column/name :column/order {:column/board ~(om/get-query BoardItem)}
            {:column/tasks ~(om/get-query ColumnTask)}
-           [:app/local-state _]
-           [:other/thing _]])
+           [:app/local-state _]])
   
 
   Object
   (render [this]
           (let [is-moving? (-> this om/props :moving)
-                _ (println (om/props this))
                 local-state (:app/local-state (om/props this))
                 mov-task-id (:task/moving (om/props this))
                 class-name (str "board-column " (if is-moving? "moving" ""))
@@ -163,7 +161,6 @@
                                 (fn [e]
                                   (h/update-order {:reconciler (om/get-reconciler this) :component this :entity :target-column-id :entity-id column-id})
                                   (.preventDefault e))))]
-            (println "task modal loc state" local-state)
             (dom/div (clj->js js-map) 
                      [(dom/div #js {:className "board-column-title" :key (str "item-title-" column-id)} (str (:column/name (om/props this))))
                       (dom/div #js {:className "board-column-tasks" :key (str "board-column-tasks-" column-id)}
@@ -196,7 +193,7 @@
                               :task/moving
                               {:field-idents [:column/moving :task/moving ]}]}
            :app/route
-           {:board/by-id [:board/name]}])
+           {:board/by-id ~(om/get-query BoardItem)}])
 
   Object
   (render

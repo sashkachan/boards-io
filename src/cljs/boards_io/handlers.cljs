@@ -29,33 +29,29 @@
                           (om/transform-reads reconciler [:board/list])))
       (modal-close (assoc env :ref :board/new-board-modal)))))
 
-(defn new-task-save [{:keys [reconciler save-btn-field extras] :as env}]
-  ; todo: if nil? extras -> exception!
-  (let [st @(om/get-reconciler reconciler)
+(defn new-task-save [{:keys [component save-btn-field extras] :as env}]
+                                        ; todo: if nil? extras -> exception!
+  (let [st @(om/get-reconciler component)
         column-id (:column-id extras)
         form (gdom/getElement "new-task-form")
         title (forms/getValueByName form "task-title")
         max-order (apply max (map (fn [[_ task]] (:task/order task)) (get-in st [:task/by-id])))
         order (if (nil? max-order) 1 (+ 1 max-order))]
-    (om/transact! reconciler
-                  (into [
-                         `(save/new-task! {:title ~title :column-id ~column-id :order ~order})
-                         ]
-                        (om/transform-reads reconciler [:column/list])))
+    (om/transact! component (into [`(save/new-task! {:title ~title :column-id ~column-id :order ~order})]
+                                  (om/transform-reads reconciler [:route/data])))
     (modal-close env)))
 
 (defn new-column-save [{:keys [reconciler save-btn-field extras] :as env}]
                                         ; todo: if nil? extras -> exception!
   (let [st @(om/get-reconciler reconciler)
         board-id (:board/by-id extras)
-        _ (println "my extras " extras)
         form (gdom/getElement "new-column-form")
         title (forms/getValueByName form "column-title")
         max-order (apply max (map (fn [[_ column]] (:column/order column)) (get-in st [:column/by-id])))
         order (if (nil? max-order) 1 (+ 1 max-order))]
     (om/transact! reconciler
                   (into [`(save/new-column! {:title ~title :board-id ~board-id :order ~order})]
-                        (om/transform-reads reconciler [:column/list])))
+                        (om/transform-reads reconciler [:route/data])))
     (modal-close env)))
 
 (defn drag-start [{:keys [reconciler component entity ident ] :as env}]
