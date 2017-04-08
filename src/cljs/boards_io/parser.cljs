@@ -13,19 +13,26 @@
 (defmulti read om/dispatch)
 (defmulti mutate om/dispatch)
 
-(defn merge-all [coll hm ]
-  (mapv (fn [e] (merge e hm)) coll))
+(defn merge-all [coll hm]
+  (if (not-empty hm)
+    (mapv (fn [e] (merge e hm)) coll)
+    coll))
+
+(defn get-local-vals-map [{:keys [db-path parser ast state query target] :as env}]
+ (into {} (remove (complement om.util/ident?) (get ast :query))))
+
+(defn local-vals->valuemap [local-vals-map {:keys [state] :as env}]
+  (let [state' @state]
+    (if (not-empty local-vals-map)
+      (zipmap (keys local-vals-map) (map #(get state' %) (keys local-vals-map)))
+      {})))
 
 (defn denorm-data-val [key {:keys [db-path parser ast state query target] :as env}]
   (let [state' @state
         refs (get-in state' db-path)
-        q [(om/ast->query ast)]
-        local-vals (into {} (remove (complement om.util/ident?) (get ast :query)))]
-    
+        q [(om/ast->query ast)]]
     (when (not (empty? refs))
-      (cond-> (get (om/db->tree q refs state') key)
-        (not-empty local-vals)
-        (merge-all (zipmap (keys local-vals) (map #(get state' %) (keys local-vals))))))))
+       (merge-all (get (om/db->tree q refs state') key) (local-vals->valuemap (get-local-vals-map env) env)))))
 
 (defn remove-idents [{:keys [ast target] :as env} k params]
   (if (nil? target)
@@ -43,8 +50,9 @@
                         (assoc :query-root true)
                         (assoc :params {:token token}))))))
 
-(defmethod read :board/list [{:keys [ast target query state db-path] :as env} k _]
-  (let [st @state]
+(defmethod read :board/list [{:keys [ast target query state db-path] :as env} k params]
+  (let [st @state
+        ast (remove-idents env k params)]
     (cond-> {}
       (nil? target)
       (assoc :value (denorm-data-val k env))
@@ -70,7 +78,7 @@
                         (assoc :query-root true)
                         (assoc :params (second route))))
       (nil? target)
-      (assoc :value (denorm-data-val k env) ))))
+      (assoc :value (denorm-data-val k env)))))
 
 (defn get-query-root
   [{:keys [ast target parser] :as env}]
@@ -81,14 +89,10 @@
 
 (defn read-local-value [{:keys [target state query parser db-path] :as env}]
   (let [st @state
-        parsed (parser env query)
+        parsed (merge (parser env query) (local-vals->valuemap (get-local-vals-map env) env))
         current (get-in st db-path)]
     (cond-> current
       (map? current) (merge parsed))))
-
-(defmethod read :app/local-state
-  [env k _]
-  {:value (read-local-value (assoc env :db-path [k]))})
 
 (defmethod read :default
   [{:keys [target state query parser db-path] :as env} k _]

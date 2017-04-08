@@ -87,7 +87,7 @@
                                                  ))
                        (bs-button
                         #js {:bsStyle "primary"
-                             :onClick #(h/new-task-save {:reconciler root
+                             :onClick #(h/new-task-save {:component root
                                                          :ref :column/new-task-modal
                                                          :extras extras})
                              :key "mod-btn2"} "Save")]))

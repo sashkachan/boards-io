@@ -37,7 +37,7 @@
   static om/IQuery
   (query [this]
          `[{:board/list ~(om/get-query BoardItem)}
-           {:app/local-state [:board/new-board-modal]}])
+           [:app/local-state _]])
   
   Object
   (render [this]
@@ -186,12 +186,7 @@
   static om/IQuery
   (query [this]
          `[{:column/list ~(om/get-query ColumnItem)}
-           {:app/local-state [:column/moving
-                              :column/new-column-modal
-                              :column/new-task-modal
-                              :column/save-btn-field
-                              :task/moving
-                              {:field-idents [:column/moving :task/moving ]}]}
+           [:app/local-state _]
            :app/route
            {:board/by-id ~(om/get-query BoardItem)}])
 

@@ -30,8 +30,8 @@
       (modal-close (assoc env :ref :board/new-board-modal)))))
 
 (defn new-task-save [{:keys [component save-btn-field extras] :as env}]
-                                        ; todo: if nil? extras -> exception!
-  (let [st @(om/get-reconciler component)
+  (let [reconciler (om/get-reconciler component)
+        st @reconciler
         column-id (:column-id extras)
         form (gdom/getElement "new-task-form")
         title (forms/getValueByName form "task-title")
@@ -39,7 +39,7 @@
         order (if (nil? max-order) 1 (+ 1 max-order))]
     (om/transact! component (into [`(save/new-task! {:title ~title :column-id ~column-id :order ~order})]
                                   (om/transform-reads reconciler [:route/data])))
-    (modal-close env)))
+    (modal-close (assoc env :reconciler reconciler))))
 
 (defn new-column-save [{:keys [reconciler save-btn-field extras] :as env}]
                                         ; todo: if nil? extras -> exception!
