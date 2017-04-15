@@ -239,7 +239,7 @@
             (if token
               (dom/div nil "")
               (dom/div #js {:className "navbar-auth-blob"}
-                       (dom/a #js {:href "/oauth" :target "_self"} "Login with Google"))))))
+                       (dom/a #js {:href "/oauth" :target "_self"} "Google"))))))
 
 
 (defui Header
@@ -255,8 +255,7 @@
                                                                     (dom/ul #js {:className "nav navbar-nav"}
                                                                             (dom/li #js {:id "boards-list"} 
                                                                                     (dom/a #js {:href "#"} ""))))])
-                      (dom/div #js {:className "col-md-2" :key "col-md-2"} 
-                               ((om/factory AuthHeader {:keyfn identity}) (om/props this) ))]))))
+]))))
 
 (def route->component
   {:columns ColumnList

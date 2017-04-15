@@ -37,6 +37,18 @@
           :query-root (c/get-root-query)
           })
 
+(defui LoginBox
+  Object
+  (render [this]
+          (dom/div #js {:className "row"}
+                   [(dom/div #js {:className "col-md-6 col-md-offset-3"}
+                             (dom/div #js {:className "panel panel-default"}
+                                      (dom/div #js {:className "panel-heading"} "Login to continue")
+                                      
+                                      (dom/div #js {:className "panel-body"}
+                                               ((om/factory c/AuthHeader)))))])))
+
+(def login (om/factory LoginBox))
 (defui Root
   static om/IQuery
   (query [this]
@@ -56,8 +68,10 @@
                             (let [component ((c/route->factory pr) (get data pr))]
                               component))]
             (dom/div nil [((om/factory c/Header {:keyfn identity}) {:oauth/user (:oauth/user (om/props this))} )
-                          (dom/div #js {:key "route-container" :className "container-fluid"}
-                                   comp-data)
+                          (if (nil? user)
+                            (login)
+                            (dom/div #js {:key "route-container" :className "container-fluid"}
+                                                   comp-data))
                           ]))))
 
 (om/add-root! reconciler Root (js/document.getElementById "app"))

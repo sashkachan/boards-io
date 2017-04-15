@@ -20,7 +20,7 @@ spec:
           path: /vol-data
       containers:
       - name: boards-io
-        image: gcr.io/boards-io/boards-io:1.0.0
+        image: gcr.io/boards-io/boards-io:1.0.2
         imagePullPolicy: Always
         ports:
         - containerPort: 9082
