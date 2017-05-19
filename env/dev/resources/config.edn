@@ -1,0 +1,5 @@
+{:client-id "GOOG-CLIENTID"
+ :client-secret "GOOG-CLIENT-SECRET"
+ :redirect-uri "http://localhost:9082/auth"
+ :uri "datomic:mem://boards"
+ :port 9082}

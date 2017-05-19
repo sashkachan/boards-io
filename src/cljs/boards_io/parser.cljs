@@ -182,3 +182,16 @@
 (defmethod mutate :default
   [_  _ _]
   {:remote true})
+
+(defmethod mutate 'save/new-task!
+  [{:keys [state]} _ {:keys [title column-id order] :as incm}]
+  (let [state' @state
+]
+    {:remote true
+     :action (fn []
+               #_(let [id (om/tempid)]
+                 (swap! state assoc-in [:column/by-id column-id :column/tasks] [:task/by-id id])
+                 (swap! state assoc-in [:task/by-id id]
+                        {:db/id id
+                         :task/title title
+                         :task/order order})))}))

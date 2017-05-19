@@ -37,8 +37,9 @@
         title (forms/getValueByName form "task-title")
         max-order (apply max (map (fn [[_ task]] (:task/order task)) (get-in st [:task/by-id])))
         order (if (nil? max-order) 1 (+ 1 max-order))]
-    (om/transact! component (into [`(save/new-task! {:title ~title :column-id ~column-id :order ~order})]
-                                  (om/transform-reads reconciler [:route/data])))
+    (om/transact! component #_[`(save/new-task! {:title ~title :column-id ~column-id :order ~order}) [:column/by-id column-id]]
+                  (into [`(save/new-task! {:title ~title :column-id ~column-id :order ~order})]
+                        (om/transform-reads reconciler [:route/data])))
     (modal-close (assoc env :reconciler reconciler))))
 
 (defn new-column-save [{:keys [reconciler save-btn-field extras] :as env}]
