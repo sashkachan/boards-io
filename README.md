@@ -28,3 +28,10 @@ Navigate to ```http://localhost:9082/``` in your browser.
 Under ./deployment you'll find various k8s deployment files.
 This will automatically handle the certificates creation using http://letsencrypt.org
 
+# Images
+
+![Auth](https://www.dropbox.com/s/o1pme6j0c0eizda/Auth.png?dl=1)
+![Boards](https://www.dropbox.com/s/vy78zslrxqphkcn/Boards.png?dl=1)
+![Drag](https://www.dropbox.com/s/hc4p7pggv82m8sm/Drag.png?dl=1)
+![DragCol](https://www.dropbox.com/s/vm7jtaz59boabyh/DragCol.png?dl=1)
+![NewCol](https://www.dropbox.com/s/wqngiod3uw0wv4e/NewCol.png?dl=1)
